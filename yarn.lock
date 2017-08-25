@@ -23,7 +23,7 @@
     "@types/bson" "*"
     "@types/node" "*"
 
-"@types/mongoose@^4.7.21":
+"@types/mongoose@^4.7.1", "@types/mongoose@^4.7.21":
   version "4.7.21"
   resolved "https://registry.yarnpkg.com/@types/mongoose/-/mongoose-4.7.21.tgz#aea0363e01a64c33fda5a9e592d5d25734eca3ec"
   dependencies:
@@ -159,7 +159,7 @@ kareem@1.5.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/kareem/-/kareem-1.5.0.tgz#e3e4101d9dcfde299769daf4b4db64d895d17448"
 
-lodash@^4.14.0:
+lodash@^4.14.0, lodash@^4.17.4:
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
@@ -202,7 +202,7 @@ mongodb@*, mongodb@2.2.31:
     mongodb-core "2.1.15"
     readable-stream "2.2.7"
 
-mongoose@^4.11.8:
+mongoose@^4.11.8, mongoose@^4.7.3:
   version "4.11.8"
   resolved "https://registry.yarnpkg.com/mongoose/-/mongoose-4.11.8.tgz#0d618ad22d33ed8d2497c060d2cad6491eb6a6a9"
   dependencies:
@@ -279,6 +279,10 @@ redis@^2.8.0:
     double-ended-queue "^2.1.0-0"
     redis-commands "^1.2.0"
     redis-parser "^2.6.0"
+
+reflect-metadata@^0.1.8:
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.1.10.tgz#b4f83704416acad89988c9b15635d47e03b9344a"
 
 regexp-clone@0.0.1:
   version "0.0.1"
@@ -363,7 +367,17 @@ tsconfig@^6.0.0:
     strip-bom "^3.0.0"
     strip-json-comments "^2.0.0"
 
-typescript@^2.4.2:
+typegoose@^3.1.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/typegoose/-/typegoose-3.1.1.tgz#873792fd28448f6f51d26bd87ab9f9c206ecb755"
+  dependencies:
+    "@types/mongoose" "^4.7.1"
+    lodash "^4.17.4"
+    mongoose "^4.7.3"
+    reflect-metadata "^0.1.8"
+    typescript "^2.2.1"
+
+typescript@^2.2.1, typescript@^2.4.2:
   version "2.4.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.4.2.tgz#f8395f85d459276067c988aa41837a8f82870844"
 

@@ -7,10 +7,8 @@ import * as Endpoints from "./Config/Endpoints";
 import RequestHandler from "./Handler/RequestHandler";
 import ShardHandler from "./Handler/ShardHandler";
 
-import Guild from "./Database/Guild/Guild";
-import GuildInterface from "./Database/Guild/GuildInterface";
-import User from "./Database/User/User";
-import UserInterface from "./Database/User/UserInterface";
+import Guild, {GuildModel} from "./Database/Guild";
+import User, {UserModel} from "./Database/User";
 
 import KernelInjectionPlugin from "./Plugin/Mongo/KernelInjectionPlugin";
 import Status from "./Database/Status";
@@ -23,8 +21,8 @@ export default class Kernel extends EventEmitter {
     public requestHandler: RequestHandler;
     public shardHandler: ShardHandler;
     public cacheRepository: CacheRepository;
-    public guilds: Cache<GuildInterface>;
-    public users: Cache<UserInterface>;
+    public guilds: Cache<Guild>;
+    public users: Cache<User>;
     public presence: { game: any; status: Status };
     public guildShardMap: { [name: string]: number } = {};
     public unavailableGuilds: Collection<any>;
@@ -52,8 +50,8 @@ export default class Kernel extends EventEmitter {
         this.requestHandler  = new RequestHandler(this);
         this.shardHandler    = new ShardHandler(this);
         this.cacheRepository = new CacheRepository(this);
-        this.guilds          = this.cacheRepository.add<GuildInterface>("guild", Guild);
-        this.users           = this.cacheRepository.add<UserInterface>("user", User);
+        this.guilds          = this.cacheRepository.add<Guild>("guild", GuildModel);
+        this.users           = this.cacheRepository.add<User>("user", UserModel);
 
         this.presence = {
             game:   null,

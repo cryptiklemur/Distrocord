@@ -15,6 +15,7 @@
     "mongoose": "^4.11.8",
     "redis": "^2.8.0",
     "ts-node": "^3.3.0",
+    "typegoose": "^3.1.1",
     "typescript": "^2.4.2",
     "uws": "^8.14.1",
     "validator.ts": "^0.2.2",
