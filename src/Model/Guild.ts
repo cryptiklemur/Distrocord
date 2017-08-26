@@ -1,6 +1,5 @@
 import {Long} from "bson";
 import {instanceMethod, InstanceType, prop} from "typegoose";
-import {CDN_URL} from "../Config/Endpoints";
 import Shard from "../Gateway/Shard";
 import Kernel from "../Kernel";
 import ChannelManager from "../Manager/ChannelManager";

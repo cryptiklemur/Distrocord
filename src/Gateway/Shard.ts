@@ -5,6 +5,7 @@ import Bucket from "../Helper/Bucket";
 import Kernel from "../Kernel";
 import Timer = NodeJS.Timer;
 import {Status} from "../Model/User";
+import Guild from "../Model/Guild";
 
 const Erlpack: any = require("erlpack");
 
@@ -207,12 +208,13 @@ export default class Shard extends EventEmitter {
         this.sendWS(OPCodes.SYNC_GUILD, guildID);
     }
 
-    private createGuild(_guild) {
+    private async createGuild(_guild): Promise<Guild> {
         this.kernel.guildShardMap[_guild.id] = this.id;
 
-        let guild = this.kernel.guilds.add(_guild);
-        if (this.kernel.configuration.getAllUsers && guild.members.size() < guild.memberCount) {
-            guild.fetchAllMembers();
+        let guild = await this.kernel.guilds.add(_guild);
+        if (this.kernel.configuration.getAllUsers && await guild.members.count() < guild.memberCount) {
+            //guild.fetchAllMembers();
+            // @todo Fetch all members
         }
 
         return guild;

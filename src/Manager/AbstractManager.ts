@@ -1,6 +1,6 @@
+import {Long} from "bson";
 import Kernel from "../Kernel";
 import AbstractModel from "../Model/AbstractModel";
-import {Long} from "bson";
 
 export default class AbstractManager<T extends AbstractModel> {
     constructor(protected kernel: Kernel, protected cls: any, protected parent?: AbstractModel) {
@@ -28,5 +28,9 @@ export default class AbstractManager<T extends AbstractModel> {
         await cls.save();
 
         return <T> cls;
+    }
+
+    public async count(query: any = {}): Promise<number> {
+        return await this.cls.count(query);
     }
 }
