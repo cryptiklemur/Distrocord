@@ -2,7 +2,7 @@ import {Long} from "bson";
 import Kernel from "../Kernel";
 import AbstractModel from "../Model/AbstractModel";
 
-export default class AbstractManager<T extends AbstractModel> {
+export default class Manager<T extends AbstractModel> {
     constructor(protected kernel: Kernel, protected cls: any, protected parent?: AbstractModel) {
     }
 

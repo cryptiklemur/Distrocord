@@ -3,9 +3,10 @@ import WebSocket from "uws";
 import {GATEWAY_VERSION, GatewayOPCodes as OPCodes} from "../Config/Constants";
 import Bucket from "../Helper/Bucket";
 import Kernel from "../Kernel";
-import Timer = NodeJS.Timer;
-import {Status} from "../Model/User";
 import Guild from "../Model/Guild";
+import {Status} from "../Model/User";
+import AbstractEvent from "./Event/AbstractEvent";
+import Timer = NodeJS.Timer;
 
 const Erlpack: any = require("erlpack");
 
@@ -161,6 +162,17 @@ export default class Shard extends EventEmitter {
         this.presence             = JSON.parse(JSON.stringify(this.kernel.presence)); // Fast copy
     }
 
+    private async wsEvent(packet: { op: number, d: any, s: number, t: string }) {
+        const cls: any                = await import("./Event/" + this.getClassFromType(packet.t));
+        const instance: AbstractEvent = new cls(this.kernel, this);
+
+        return await instance.handle(packet);
+    }
+
+    private getClassFromType(type: string): string {
+        return type.split("_").map(w => w[0].toUpperCase() + w.substr(1).toLowerCase()).join("") + "Event";
+    }
+
     private resume() {
         this.sendWS(OPCodes.RESUME, {
             token:      this.kernel.token,
@@ -249,7 +261,7 @@ export default class Shard extends EventEmitter {
         }
     }
 
-    private requestGuildMembers(guildID: string|string[], query: string = "", limit: number = 0) {
+    private requestGuildMembers(guildID: string | string[], query: string = "", limit: number = 0) {
         this.sendWS(OPCodes.GET_GUILD_MEMBERS, {
             guild_id: guildID,
             query:    query,
@@ -336,7 +348,7 @@ export default class Shard extends EventEmitter {
                 switch (packet.op) {
                     case OPCodes.EVENT: {
                         if (!this.kernel.configuration.disableEvents[packet.t]) {
-                            //this.wsEvent(packet);
+                            this.wsEvent(packet);
                         }
                         break;
                     }
@@ -396,8 +408,10 @@ export default class Shard extends EventEmitter {
             this.kernel.emit("error", event, this.id);
         };
         this.ws.onclose   = (event) => {
-            var err       = !event.code || event.code === 1000 ? null : new Error(event.code + ": " + event.reason);
-            var reconnect: string|boolean = "auto";
+            var err                         = !event.code || event.code === 1000 ? null : new Error(event.code +
+                                                                                                    ": " +
+                                                                                                    event.reason);
+            var reconnect: string | boolean = "auto";
             if (event.code) {
                 this.kernel.emit(
                     "warn",

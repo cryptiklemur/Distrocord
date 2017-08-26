@@ -5,8 +5,7 @@ import * as Endpoints from "./Config/Endpoints";
 import RequestHandler from "./Handler/RequestHandler";
 import ShardHandler from "./Handler/ShardHandler";
 import Collection from "./Helper/Collection";
-import GuildManager from "./Manager/GuildManager";
-import UserManager from "./Manager/UserManager";
+import Manager from "./Manager/Manager"
 import {Status, default as User} from "./Model/User";
 
 import Guild from "./Model/Guild";
@@ -21,8 +20,8 @@ export default class Kernel extends EventEmitter {
     public guildShardMap: { [name: string]: number } = {};
     public unavailableGuilds: Collection<any>;
 
-    public guilds: GuildManager;
-    public users: UserManager;
+    public guilds: Manager<Guild>;
+    public users: Manager<User>;
 
     private ready: boolean;
     private startTime: number   = 0;
@@ -46,8 +45,8 @@ export default class Kernel extends EventEmitter {
 
         this.requestHandler = new RequestHandler(this);
         this.shardHandler   = new ShardHandler(this);
-        this.guilds         = new GuildManager(this, Guild);
-        this.users          = new UserManager(this, User);
+        this.guilds         = new Manager<Guild>(this, Guild);
+        this.users          = new Manager<User>(this, User);
 
         this.presence = {
             game:   null,
