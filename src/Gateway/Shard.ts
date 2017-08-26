@@ -3,8 +3,8 @@ import WebSocket from "uws";
 import {GATEWAY_VERSION, GatewayOPCodes as OPCodes} from "../Config/Constants";
 import Bucket from "../Helper/Bucket";
 import Kernel from "../Kernel";
-import Status from "../Model/Status";
 import Timer = NodeJS.Timer;
+import {Status} from "../Model/User";
 
 const Erlpack: any = require("erlpack");
 
@@ -38,7 +38,7 @@ export default class Shard extends EventEmitter {
     private _rStartTime: number;
     private discordServerTrace: any;
 
-    constructor(private id: number, private kernel: Kernel) {
+    constructor(public id: number, private kernel: Kernel) {
         super();
 
         this.hardReset();
@@ -79,7 +79,7 @@ export default class Shard extends EventEmitter {
 
         options = options || {reconnect: true};
         if (this.heartbeatInterval) {
-            clearInterval(this.heartbeatInterval);
+            clearInterval(<number> this.heartbeatInterval);
             this.heartbeatInterval = null;
         }
 
@@ -519,16 +519,12 @@ export default class Shard extends EventEmitter {
 
         this.sendStatusUpdate();
 
-        this.kernel.guilds.forEach((guild) => {
-            if (guild.shard.id === this.id) {
-                guild.members.get(this.kernel.user.id).update(this.presence);
-            }
-        });
+        // @todo Loop through guilds on the shard and set status for the member
     }
 
     sendStatusUpdate() {
         this.sendWS(OPCodes.STATUS_UPDATE, {
-            afk:    !!this.presence.afk, // For push notifications
+            afk:    false,
             game:   this.presence.game,
             since:  this.presence.status === "idle" ? Date.now() : 0,
             status: this.presence.status,

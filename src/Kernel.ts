@@ -1,18 +1,15 @@
 import {EventEmitter} from "eventemitter3";
-import Cache from "./Cache/Cache";
-import CacheRepository from "./Cache/CacheRepository";
 import Configuration from "./Config/Configuration";
 import * as Constants from "./Config/Constants";
 import * as Endpoints from "./Config/Endpoints";
 import RequestHandler from "./Handler/RequestHandler";
 import ShardHandler from "./Handler/ShardHandler";
-
-import Guild, {GuildModel} from "./Database/Guild";
-import User, {UserModel} from "./Database/User";
-
-import KernelInjectionPlugin from "./Plugin/Mongo/KernelInjectionPlugin";
-import Status from "./Database/Status";
 import Collection from "./Helper/Collection";
+import GuildManager from "./Manager/GuildManager";
+import UserManager from "./Manager/UserManager";
+import {Status, default as User} from "./Model/User";
+
+import Guild from "./Model/Guild";
 
 export default class Kernel extends EventEmitter {
     public configuration: Configuration;
@@ -20,12 +17,12 @@ export default class Kernel extends EventEmitter {
     public gatewayURL: string;
     public requestHandler: RequestHandler;
     public shardHandler: ShardHandler;
-    public cacheRepository: CacheRepository;
-    public guilds: Cache<Guild>;
-    public users: Cache<User>;
     public presence: { game: any; status: Status };
     public guildShardMap: { [name: string]: number } = {};
     public unavailableGuilds: Collection<any>;
+
+    public guilds: GuildManager;
+    public users: UserManager;
 
     private ready: boolean;
     private startTime: number   = 0;
@@ -47,18 +44,15 @@ export default class Kernel extends EventEmitter {
             this.configuration.defaultImageSize = 128;
         }
 
-        this.requestHandler  = new RequestHandler(this);
-        this.shardHandler    = new ShardHandler(this);
-        this.cacheRepository = new CacheRepository(this);
-        this.guilds          = this.cacheRepository.add<Guild>("guild", GuildModel);
-        this.users           = this.cacheRepository.add<User>("user", UserModel);
+        this.requestHandler = new RequestHandler(this);
+        this.shardHandler   = new ShardHandler(this);
+        this.guilds         = new GuildManager(this, Guild);
+        this.users          = new UserManager(this, User);
 
         this.presence = {
             game:   null,
-            status: "offline"
+            status: "offline",
         };
-
-        KernelInjectionPlugin(this);
     }
 
     get uptime(): number {
@@ -101,7 +95,7 @@ export default class Kernel extends EventEmitter {
                 data.url += "/";
             }
             this.gatewayURL = data.url + "?v=" + Constants.GATEWAY_VERSION + "&encoding=etf";
-            for (var i = this.configuration.firstShard; i <= this.configuration.lastShard; ++i) {
+            for (let i = this.configuration.firstShard; i <= this.configuration.lastShard; ++i) {
                 this.shardHandler.spawn(i);
             }
         }).catch((err) => {
