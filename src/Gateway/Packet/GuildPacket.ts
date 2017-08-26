@@ -1,5 +1,7 @@
+import {Long} from "bson";
+
 type GuildPacket = {
-    id: string,
+    id: Long,
     name: string,
     icon: string,
     splash: string,

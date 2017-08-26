@@ -7,11 +7,13 @@ import Guild from "../Model/Guild";
 import {Status} from "../Model/User";
 import AbstractEvent from "./Event/AbstractEvent";
 import Timer = NodeJS.Timer;
+import {Long} from "bson";
 
 const Erlpack: any = require("erlpack");
 
 export default class Shard extends EventEmitter {
     public status: string;
+    public ready: boolean;
 
     private heartbeatInterval: Timer | number;
     private connectAttempts: number = 0;
@@ -21,7 +23,6 @@ export default class Shard extends EventEmitter {
     private ws: WebSocket;
     private sessionID: boolean | string;
     private reconnectInterval: number;
-    private ready: boolean;
     private preReady: boolean;
     private unsyncedGuilds: number;
     private lastHeartbeatAck: boolean;
@@ -166,7 +167,11 @@ export default class Shard extends EventEmitter {
         const cls: any                = await import("./Event/" + this.getClassFromType(packet.t));
         const instance: AbstractEvent = new cls(this.kernel, this);
 
-        return await instance.handle(packet);
+        if (packet.d.id !== undefined) {
+            packet.d.id = Long.fromString(packet.d.id);
+        }
+
+        return await instance.doHandle(packet);
     }
 
     private getClassFromType(type: string): string {
@@ -220,7 +225,7 @@ export default class Shard extends EventEmitter {
         this.sendWS(OPCodes.SYNC_GUILD, guildID);
     }
 
-    private async createGuild(_guild): Promise<Guild> {
+    public async createGuild(_guild): Promise<Guild> {
         this.kernel.guildShardMap[_guild.id] = this.id;
 
         let guild = await this.kernel.guilds.add(_guild);
@@ -232,7 +237,7 @@ export default class Shard extends EventEmitter {
         return guild;
     }
 
-    private restartGuildCreateTimeout() {
+    public restartGuildCreateTimeout() {
         if (this.guildCreateTimeout) {
             clearTimeout(<number> this.guildCreateTimeout);
             this.guildCreateTimeout = null;

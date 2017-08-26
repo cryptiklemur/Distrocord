@@ -5,10 +5,10 @@ import * as Endpoints from "./Config/Endpoints";
 import RequestHandler from "./Handler/RequestHandler";
 import ShardHandler from "./Handler/ShardHandler";
 import Collection from "./Helper/Collection";
-import Manager from "./Manager/Manager"
-import {Status, default as User} from "./Model/User";
+import Manager from "./Manager/Manager";
 
 import Guild from "./Model/Guild";
+import {default as User, Status} from "./Model/User";
 
 export default class Kernel extends EventEmitter {
     public configuration: Configuration;
@@ -43,10 +43,11 @@ export default class Kernel extends EventEmitter {
             this.configuration.defaultImageSize = 128;
         }
 
-        this.requestHandler = new RequestHandler(this);
-        this.shardHandler   = new ShardHandler(this);
-        this.guilds         = new Manager<Guild>(this, Guild);
-        this.users          = new Manager<User>(this, User);
+        this.requestHandler    = new RequestHandler(this);
+        this.shardHandler      = new ShardHandler(this);
+        this.unavailableGuilds = new Collection<Guild>(Guild);
+        this.guilds            = new Manager<Guild>(this, Guild);
+        this.users             = new Manager<User>(this, User);
 
         this.presence = {
             game:   null,

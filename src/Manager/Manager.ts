@@ -33,4 +33,11 @@ export default class Manager<T extends AbstractModel> {
     public async count(query: any = {}): Promise<number> {
         return await this.cls.count(query);
     }
+
+    public async remove(identifier: Long): Promise<boolean> {
+        let instance: any = await this.get(identifier);
+        await instance.remove();
+
+        return true;
+    }
 }
