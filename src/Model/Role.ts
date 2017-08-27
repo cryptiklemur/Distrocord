@@ -2,10 +2,10 @@ import Kernel from "../Kernel";
 import {instanceMethod, InstanceType, prop, Ref} from "typegoose";
 import User from "./User";
 import Guild from "./Guild";
-import Base from "./AbstractModel";
+import AbstractModel from "./AbstractModel";
 import Permission from "./Permission";
 
-export default class Role extends Base {
+export default class Role extends AbstractModel {
     @prop()
     public name: string;
 
@@ -35,7 +35,17 @@ export default class Role extends Base {
 
     @instanceMethod
     public get mention(this: InstanceType<Role>) {
-        return '<@' + this.identifier + '>';
+        return "<@" + this.identifier + ">";
+    }
+
+    @instanceMethod
+    public initialize(this: InstanceType<Role>, data: any, kernel: Kernel, parent?: AbstractModel): Promise<any> {
+        return undefined;
+    }
+
+    @instanceMethod
+    public update(this: InstanceType<Role>, data: any, kernel: Kernel): Promise<any> {
+        return undefined;
     }
 }
 

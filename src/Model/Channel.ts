@@ -1,12 +1,13 @@
 import {arrayProp, instanceMethod, InstanceType, prop, Ref} from "typegoose";
 import Guild from "./Guild";
-import Base from "./AbstractModel";
+import AbstractModel from "./AbstractModel";
 import Message from "./Message";
 import PermissionOverwrite from "./PermissionOverwrite";
+import Kernel from "../Kernel";
 
 export type ChannelType = 0 | 2;
 
-export default class Channel extends Base {
+export default class Channel extends AbstractModel {
     @prop({ref: Guild})
     public guild?: Ref<Guild>;
 
@@ -43,6 +44,16 @@ export default class Channel extends Base {
         }
 
         return '<#' + this.identifier + '>';
+    }
+
+    @instanceMethod
+    public initialize(this: InstanceType<Channel>, data: any, kernel: Kernel, parent?: AbstractModel): Promise<any> {
+        return undefined;
+    }
+
+    @instanceMethod
+    public update(this: InstanceType<Channel>, data: any, kernel: Kernel): Promise<any> {
+        return undefined;
     }
 }
 

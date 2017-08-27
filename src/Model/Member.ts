@@ -1,12 +1,12 @@
 import Kernel from "../Kernel";
-import {arrayProp, prop, Ref} from "typegoose";
+import {arrayProp, instanceMethod, InstanceType, prop, Ref} from "typegoose";
 import User from "./User";
 import Guild from "./Guild";
-import Base from "./AbstractModel";
+import AbstractModel from "./AbstractModel";
 import Role from "./Role";
 import Permission from "./Permission";
 
-export default class Member extends Base {
+export default class Member extends AbstractModel {
     @prop({ref: User})
     public user: Ref<User>;
 
@@ -21,6 +21,16 @@ export default class Member extends Base {
 
     @prop()
     public permission: Permission;
+
+    @instanceMethod
+    public initialize(this: InstanceType<Member>, data: any, kernel: Kernel, parent?: AbstractModel): Promise<any> {
+        return undefined;
+    }
+
+    @instanceMethod
+    public update(this: InstanceType<Member>, data: any, kernel: Kernel): Promise<any> {
+        return undefined;
+    }
 }
 
 export const MemberModel = new Member().getModelForClass(Member);

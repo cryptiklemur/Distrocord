@@ -1,8 +1,9 @@
 import {instanceMethod, InstanceType, prop} from "typegoose";
 import {Permissions} from "../Config/Constants";
-import Base from "./AbstractModel";
+import AbstractModel from "./AbstractModel";
+import Kernel from "../Kernel";
 
-export default class Permission extends Base {
+export default class Permission extends AbstractModel {
     @prop()
     public allow: number;
 
@@ -36,6 +37,16 @@ export default class Permission extends Base {
     @instanceMethod
     has(this: InstanceType<Permission>, permission: string): boolean {
         return !!(this.allow & Permissions[permission]);
+    }
+
+    @instanceMethod
+    public initialize(this: InstanceType<Permission>, data: any, kernel: Kernel, parent?: AbstractModel): Promise<any> {
+        return undefined;
+    }
+
+    @instanceMethod
+    public update(this: InstanceType<Permission>, data: any, kernel: Kernel): Promise<any> {
+        return undefined;
     }
 }
 
