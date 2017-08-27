@@ -16,14 +16,14 @@ export default class Shard extends EventEmitter {
     public ready: boolean;
 
     private heartbeatInterval: Timer | number;
-    private connectAttempts: number = 0;
-    private connecting: boolean     = false;
+    public connectAttempts: number = 0;
+    public connecting: boolean     = false;
     private lastHeartbeatSent: number;
     private lastHeartbeatReceived: number;
     private ws: WebSocket;
-    private sessionID: boolean | string;
-    private reconnectInterval: number;
-    private preReady: boolean;
+    public sessionID: boolean | string;
+    public reconnectInterval: number;
+    public preReady: boolean;
     private unsyncedGuilds: number;
     private lastHeartbeatAck: boolean;
     private guildSyncQueueLength: number;
@@ -39,7 +39,7 @@ export default class Shard extends EventEmitter {
     private presence: { game: string | null, status: Status };
     private _rPackets: number;
     private _rStartTime: number;
-    private discordServerTrace: any;
+    public discordServerTrace: any;
 
     constructor(public id: number, private kernel: Kernel) {
         super();
@@ -167,15 +167,37 @@ export default class Shard extends EventEmitter {
         const cls: any                = await import("./Event/" + this.getClassFromType(packet.t));
         const instance: AbstractEvent = new cls(this.kernel, this);
 
-        if (packet.d.id !== undefined) {
-            packet.d.id = Long.fromString(packet.d.id);
-        }
+        packet.d = this.castFields(packet.d);
 
         return await instance.doHandle(packet);
     }
 
     private getClassFromType(type: string): string {
         return type.split("_").map(w => w[0].toUpperCase() + w.substr(1).toLowerCase()).join("") + "Event";
+    }
+
+    private castFields(data: any): any {
+        if (typeof data === 'object') {
+            if (Array.isArray(data)) {
+                return data.forEach(this.castFields.bind(this));
+            }
+
+            for (let field of ['id', 'owner_id', 'guild_id', 'afk_channel_id', 'embed_channel_id', 'last_message_id', 'application', 'widget_channel_id']) {
+                if (data[field] !== undefined && typeof data[field] === 'string') {
+                    data[field] = Long.fromString(data[field]);
+                }
+            }
+
+            if (data.roles && Array.isArray(data.roles) && data.roles.filter(x => typeof x !== 'string') === 0) {
+                data.roles = data.roles.forEach(x => Long.fromString(x));
+            }
+
+            if (data.joined_at) {
+                data.joined_at = new Date(data.joined_at);
+            }
+        }
+
+        return data;
     }
 
     private resume() {
@@ -274,7 +296,7 @@ export default class Shard extends EventEmitter {
         });
     }
 
-    private checkReady() {
+    public checkReady() {
         if (!this.ready) {
             if (this.guildSyncQueue.length > 0) {
                 this.requestGuildSync(this.guildSyncQueue);

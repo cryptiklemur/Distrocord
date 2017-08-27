@@ -36,4 +36,8 @@ export default abstract class AbstractEvent {
     }
 
     public async abstract handle(): Promise<void>;
+
+    protected emit(event, ...args) {
+        this.kernel.emit.call(this.kernel, event, ...args);
+    }
 }

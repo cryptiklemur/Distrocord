@@ -7,7 +7,7 @@ export default class Manager<T extends AbstractModel> {
     }
 
     public async add(data: any): Promise<T> {
-        let cls: T = <T> new this.cls();
+        let cls: T = await this.get(data.id) || <T> new this.cls();
         await cls.initialize(data, this.kernel, this.parent);
 
         return await this.save(cls);
@@ -17,9 +17,17 @@ export default class Manager<T extends AbstractModel> {
         return <T> await this.cls.findByIdentifier(identifier);
     }
 
-    public async update(identifier: Long, data: any): Promise<T> {
+    public async all(): Promise<T[]> {
+        return <T[]> await this.cls.find({});
+    }
+
+    public async update(identifier: Long, data: any, persist: boolean = true): Promise<T> {
         let cls = await this.get(identifier);
         await cls.update(data, this.kernel);
+
+        if (!persist) {
+            return cls;
+        }
 
         return this.save(cls);
     }
@@ -34,10 +42,27 @@ export default class Manager<T extends AbstractModel> {
         return await this.cls.count(query);
     }
 
-    public async remove(identifier: Long): Promise<boolean> {
+    public async remove(identifier: Long): Promise<T> {
         let instance: any = await this.get(identifier);
         await instance.remove();
 
-        return true;
+        return instance;
+    }
+
+    public async forEach(callback: { (value: T, index: number, array: T[]): void}, parallel: boolean = false): Promise<void> {
+        const instances = await this.all();
+        let promises = [];
+        if (parallel) {
+            instances.forEach((instance, index, arr) => promises.push(callback(instance, index, arr)));
+
+            await Promise.all(promises);
+
+            return;
+        } else {
+            for (let i = 0; i < instances.length; i++) {
+                let instance = instances[i];
+                await callback(instance, i, instances);
+            }
+        }
     }
 }

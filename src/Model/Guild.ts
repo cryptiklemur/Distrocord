@@ -2,9 +2,7 @@ import {Long} from "bson";
 import {instanceMethod, InstanceType, prop} from "typegoose";
 import Shard from "../Gateway/Shard";
 import Kernel from "../Kernel";
-import ChannelManager from "../Manager/ChannelManager";
-import MemberManager from "../Manager/MemberManager";
-import RoleManager from "../Manager/RoleManager";
+import Manager from "../Manager/Manager";
 import AbstractModel from "./AbstractModel";
 import Channel from "./Channel";
 import Member from "./Member";
@@ -59,11 +57,6 @@ export default class Guild extends AbstractModel {
     @prop({index: true})
     public large: boolean;
 
-    /**
-     * @type {boolean} Whether the guild is unavailable or not
-     */
-    public unavailable: boolean;
-
     public shard: Shard;
 
     /**
@@ -72,23 +65,22 @@ export default class Guild extends AbstractModel {
     @prop()
     public memberCount: number;
 
-    public roles: RoleManager;
+    public roles: Manager<Role>;
 
-    public members: MemberManager;
+    public members: Manager<Member>;
 
-    public channels: ChannelManager;
+    public channels: Manager<Channel>;
 
     @instanceMethod
     public async initialize(this: InstanceType<Guild>, data: any, kernel: Kernel, parent?: AbstractModel) {
         this.identifier  = Long.fromString(data.id);
         this.shard       = kernel.shardHandler.get(kernel.guildShardMap[this.id]);
-        this.unavailable = !!data.unavailable;
         this.joinedAt    = Date.parse(data.joined_at);
         this.memberCount = data.member_count;
 
-        this.channels = new ChannelManager(kernel, Channel, this);
-        this.members  = new MemberManager(kernel, Member, this);
-        this.roles    = new RoleManager(kernel, Role, this);
+        this.roles    = new Manager<Role>(kernel, Role, this);
+        this.members  = new Manager<Member>(kernel, Member, this);
+        this.channels = new Manager<Channel>(kernel, Channel, this);
 
         for (let role of data.roles) {
             await this.roles.add(role);
@@ -115,7 +107,8 @@ export default class Guild extends AbstractModel {
 
     public async update(this: InstanceType<Guild>, data: any, kernel: Kernel) {
         this.name              = data.name !== undefined ? data.name : this.name;
-        this.verificationLevel = data.verification_level !== undefined ? data.verification_level : this.verificationLevel;
+        this.verificationLevel =
+            data.verification_level !== undefined ? data.verification_level : this.verificationLevel;
         this.splash            = data.splash !== undefined ? data.splash : this.splash;
         this.region            = data.region !== undefined ? data.region : this.region;
         this.ownerId           = data.owner_id !== undefined ? data.owner_id : this.ownerId;

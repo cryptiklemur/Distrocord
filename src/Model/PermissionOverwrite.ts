@@ -4,7 +4,7 @@ import Kernel from "../Kernel";
 import Base from "./AbstractModel";
 import Permission from "./Permission";
 
-export type Type = "user" | "role";
+export type Type = "member" | "role";
 
 export default class PermissionOverwrite extends Permission {
     @prop()

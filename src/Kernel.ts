@@ -6,6 +6,7 @@ import RequestHandler from "./Handler/RequestHandler";
 import ShardHandler from "./Handler/ShardHandler";
 import Collection from "./Helper/Collection";
 import Manager from "./Manager/Manager";
+import Channel from "./Model/Channel";
 
 import Guild from "./Model/Guild";
 import {default as User, Status} from "./Model/User";
@@ -17,11 +18,15 @@ export default class Kernel extends EventEmitter {
     public requestHandler: RequestHandler;
     public shardHandler: ShardHandler;
     public presence: { game: any; status: Status };
-    public guildShardMap: { [name: string]: number } = {};
+    public guildShardMap: { [id: string]: number }     = {};
+    public channelGuildMap: { [id: string]: number }   = {};
+    public privateChannelMap: { [id: string]: number } = {};
     public unavailableGuilds: Collection<any>;
 
+    public user: User;
     public guilds: Manager<Guild>;
     public users: Manager<User>;
+    public privateChannels: Manager<Channel>;
 
     private ready: boolean;
     private startTime: number   = 0;
@@ -48,6 +53,7 @@ export default class Kernel extends EventEmitter {
         this.unavailableGuilds = new Collection<Guild>(Guild);
         this.guilds            = new Manager<Guild>(this, Guild);
         this.users             = new Manager<User>(this, User);
+        this.privateChannels   = new Manager<Channel>(this, Channel);
 
         this.presence = {
             game:   null,

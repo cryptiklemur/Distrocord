@@ -1,5 +1,5 @@
-import AbstractEvent from "./AbstractEvent";
 import GuildPacket from "../Packet/GuildPacket";
+import AbstractEvent from "./AbstractEvent";
 
 /**
  * Event for GUILD_UPDATE
@@ -12,10 +12,16 @@ export default class GuildUpdateEvent extends AbstractEvent {
     }
 
     public async handle(): Promise<void> {
-        let guild = await this.kernel.guilds.get(this.data.id);
-        let oldGUild = {
-            name: guild.name,
-            
-        }
+        let guild    = await this.kernel.guilds.get(this.data.id);
+        let oldGuild = {
+            name:              guild.name,
+            verificationLevel: guild.verificationLevel,
+            splash:            guild.splash,
+            region:            guild.region,
+            ownerID:           guild.ownerId,
+            icon:              guild.icon,
+        };
+
+        this.emit("guildUpdate", this.kernel.guilds.update(this.data.id, this.data), oldGuild);
     }
 }
