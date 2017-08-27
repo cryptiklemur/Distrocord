@@ -1,11 +1,9 @@
-import {arrayProp, instanceMethod, InstanceType, prop, Ref} from "typegoose";
 import Collection from "../Helper/Collection";
 import Kernel from "../Kernel";
-import AbstractModel from "./AbstractModel";
-import Guild from "./Guild";
 import Message from "./Message";
+import ModelInterface from "./ModelInterface";
 import PermissionOverwrite from "./PermissionOverwrite";
-import User from "./User";
+import {prop, SchemaDocument, SchemaFragmentArray, document} from "mongot";
 
 export enum ChannelType {
     GUILD_TEXT,
@@ -15,40 +13,48 @@ export enum ChannelType {
     GUILD_CATEGORY,
 }
 
-export default class Channel extends AbstractModel {
-    @prop({ref: {name: "Guild"}})
-    public guild?: Ref<Guild>;
+@document
+export default class Channel extends SchemaDocument implements ModelInterface {
+    @prop
+    public identifier: string;
 
-    @prop({ref: {name: "User"}})
-    public user?: Ref<User>;
+    public get createdAt(): Date {
+        return new Date((+this.identifier / 4194304) + 1420070400000);
+    }
 
-    @prop({required: true})
+    @prop
+    public guild?: string;
+
+    @prop
+    public user?: string;
+
+    @prop
     public type: ChannelType;
 
-    @prop()
+    @prop
     public name?: string;
 
-    @prop()
+    @prop
     public position?: number;
 
-    @prop()
+    @prop
     public topic?: string;
 
-    @prop()
+    @prop
     public bitrate?: number;
 
-    @prop()
+    @prop
     public userLimit?: number;
 
-    @prop()
+    @prop
     public nsfw?: boolean;
 
-    public permissionOverwrites: Collection<PermissionOverwrite>;
+    @prop(PermissionOverwrite)
+    public permissionOverwrites: SchemaFragmentArray<PermissionOverwrite>;
 
     public messages: Collection<Message>;
 
-    @instanceMethod
-    public get mention(this: InstanceType<Channel>) {
+    public get mention() {
         if (this.type === ChannelType.DM) {
             return;
         }
@@ -56,46 +62,5 @@ export default class Channel extends AbstractModel {
         return "<#" + this.identifier + ">";
     }
 
-    @instanceMethod
-    public async initialize(
-        this: InstanceType<Channel>,
-        data: any,
-        kernel: Kernel,
-        parent?: Guild & User,
-    ): Promise<void> {
-        this.type = data.type;
-        if (this.type === ChannelType.DM) {
-            this.user = parent;
-        } else {
-            this.guild     = parent;
-        }
-
-        this.messages = new Collection<Message>(Message, kernel.configuration.messageLimit);
-
-        await this.update(data, kernel);
-    }
-
-    @instanceMethod
-    public update(this: InstanceType<Channel>, data: any, kernel: Kernel): Promise<any> {
-        if (this.type === ChannelType.DM) {
-            return;
-        }
-        this.name      = data.name !== undefined ? data.name : this.name;
-        this.topic     = data.topic !== undefined ? data.topic : this.topic;
-        this.position  = data.position !== undefined ? data.position : this.position;
-        this.bitrate   = data.bitrate !== undefined ? data.bitrate : this.bitrate;
-        this.userLimit = data.user_limit !== undefined ? data.user_limit : this.userLimit;
-
-        this.nsfw = this.type !== ChannelType.GUILD_VOICE &&
-                    ((this.name.length === 4 ? this.name === "nsfw" : this.name.startsWith("nsfw-")) || data.nsfw);
-
-        if (data.permission_overwrites) {
-            this.permissionOverwrites = new Collection<PermissionOverwrite>(PermissionOverwrite);
-            data.permission_overwrites.forEach((overwrite) => {
-                this.permissionOverwrites.add(overwrite);
-            });
-        }
-    }
+    public kernel: Kernel;
 }
-
-export const ChannelModel = new Channel().getModelForClass(Channel);

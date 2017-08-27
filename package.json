@@ -5,7 +5,7 @@
     "scripts": {
         "build": "webpack --config webpack.config.js",
         "watch": "mkdir -p build && webpack --config webpack.config.js --watch",
-        "start": "nodemon --delay 3 -w ./build --harmony build/index.js",
+        "start": "nodemon --delay 3 -w ./build/* --harmony build/index.js",
         "dev": "concurrently --kill-others \"yarn run watch\" \"sleep 15; yarn run start\""
     },
     "dependencies": {
@@ -26,6 +26,8 @@
         "https": "^1.0.0",
         "mongo": "^0.1.0",
         "mongoose": "^4.11.8",
+        "mongoose-long": "^0.1.1",
+        "mongot": "^1.4.12",
         "nodemon": "^1.10,<1.11",
         "redis": "^2.8.0",
         "source-map-support": "^0.4.16",

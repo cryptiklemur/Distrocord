@@ -1,121 +1,85 @@
-import {instanceMethod, InstanceType, prop} from "typegoose";
-import GuildPacket from "../Gateway/Packet/GuildPacket";
 import Shard from "../Gateway/Shard";
 import Kernel from "../Kernel";
-import Manager from "../Manager/Manager";
-import AbstractModel from "./AbstractModel";
-import Channel, {ChannelModel} from "./Channel";
-import Member, {MemberModel} from "./Member";
-import Role, {RoleModel} from "./Role";
+import Channel from "./Channel";
+import Member from "./Member";
+import ModelInterface from "./ModelInterface";
+import Role from "./Role";
+import {document, prop, SchemaDocument, SchemaFragmentArray} from "mongot";
 
-export default class Guild extends AbstractModel {
+@document
+export default class Guild extends SchemaDocument implements ModelInterface {
+    @prop
+    public identifier: string;
+
+    public get createdAt(): Date {
+        return new Date((+this.identifier / 4194304) + 1420070400000);
+    }
+
     /**
      * @type {string} The name of the server
      */
-    @prop({required: true, index: true})
+    @prop
     public name: string;
 
     /**
      * @type {string} The user that is the guild owner
      */
-    @prop({required: true})
-    public ownerId: string;
+    @prop
+    public owner: string;
 
     /**
      * @type {Date} Timestamp of when the bot account joined the guild
      */
-    @prop({index: true, required: true})
+    @prop
     public joinedAt: Date;
 
     /**
      * @type {number} The guild verification level
      */
-    @prop({required: true})
+    @prop
     public verificationLevel: number;
 
     /**
      * @type {string} The guild region
      */
-    @prop({required: true})
+    @prop
     public region: string;
 
     /**
      * @type {string} The hash of the guild splash image, or null if no splash (VIP only)
      */
-    @prop()
+    @prop
     public splash?: string;
 
     /**
      * @type {string} The hash of the guild icon, or null if no icon
      */
-    @prop()
+    @prop
     public icon?: string;
 
     /**
      * @type {boolean} Whether the guild is "large" by "some Discord standard"
      */
-    @prop({index: true, required: true})
+    @prop
     public large: boolean;
-
-    public shard: Shard;
 
     /**
      * @type {number} Number of members in the guild
      */
-    @prop({required: true})
+    @prop
     public memberCount: number;
 
-    public roles: Manager<Role>;
+    @prop(Role)
+    public roles: SchemaFragmentArray<Role>;
 
-    public members: Manager<Member>;
+    @prop(Member)
+    public members: SchemaFragmentArray<Member>;
 
-    public channels: Manager<Channel>;
+    @prop(Channel)
+    public channels: SchemaFragmentArray<Channel>;
 
-    @instanceMethod
-    public async initialize(this: InstanceType<Guild>, data: GuildPacket, kernel: Kernel, parent?: AbstractModel) {
-        this.identifier  = data.id.toString();
-        this.shard       = kernel.shardHandler.get(kernel.guildShardMap[this.id]);
-        this.joinedAt    = data.joined_at;
-        this.memberCount = data.member_count;
+    @prop
+    public shard: Shard;
 
-        this.roles    = new Manager<Role>(kernel, RoleModel, this);
-        this.members  = new Manager<Member>(kernel, MemberModel, this);
-        this.channels = new Manager<Channel>(kernel, ChannelModel, this);
-
-        for (const role of data.roles) {
-            await this.roles.add(role);
-        }
-
-        for (const channel of data.channels || []) {
-            await this.channels.add(channel);
-        }
-
-        for (const member of data.members || []) {
-            await this.members.add(member);
-        }
-
-        for (const presence of data.presences || []) {
-            if (!await this.members.get(presence.user.id)) {
-                continue;
-            }
-
-            await this.members.update(presence.user.id, presence);
-        }
-
-        await this.update(data, kernel);
-    }
-
-    @instanceMethod
-    public async update(this: InstanceType<Guild>, data: any, kernel: Kernel) {
-        this.name              = data.name !== undefined ? data.name : this.name;
-        this.verificationLevel =
-            data.verification_level !== undefined ? data.verification_level : this.verificationLevel;
-        this.splash            = data.splash !== undefined ? data.splash : this.splash;
-        this.region            = data.region !== undefined ? data.region : this.region;
-        this.ownerId           = data.owner_id !== undefined ? data.owner_id : this.ownerId;
-        this.icon              = data.icon !== undefined ? data.icon : this.icon;
-        this.large             = data.large !== undefined ? data.large : this.large;
-    }
+    public kernel: Kernel;
 }
-
-export const GuildModel = new Guild().getModelForClass(Guild);

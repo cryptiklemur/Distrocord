@@ -1,17 +1,21 @@
 import {Long} from "bson";
 import {InstanceType, ModelType} from "typegoose";
 import Kernel from "../Kernel";
-import AbstractModel from "../Model/AbstractModel";
+import ModelInterface from "../Model/ModelInterface";
+import AbstractModelManager from "./AbstractModelManager";
 
-export default class Manager<T extends AbstractModel> {
-    constructor(protected kernel: Kernel, protected cls: ModelType<T>, protected parent?: AbstractModel) {
+export default class Manager<T extends ModelInterface> {
+    constructor(
+        protected kernel: Kernel,
+        protected cls: ModelType<T>,
+        protected manager: AbstractModelManager<ModelInterface>,
+    ) {
     }
 
     public async add(data: any): Promise<T> {
         try {
             const cls: InstanceType<T> = await this.get(data.id) || new this.cls();
-            cls.identifier = data.id;
-            await cls.initialize(data, this.kernel, this.parent);
+            await this.manager.doInitialize(cls, data);
 
             return await this.save(cls);
         } catch (e) {
@@ -39,11 +43,10 @@ export default class Manager<T extends AbstractModel> {
         try {
             let cls: InstanceType<T> = await this.get(identifier);
             if (!cls) {
-                cls = new this.cls({identifier: data.id});
-                cls.identifier = data.id;
-                await cls.initialize(data, this.kernel, this.parent);
+                cls = new this.cls();
+                await this.manager.doInitialize(cls, data);
             } else {
-                await cls.update(data, this.kernel);
+                await this.manager.doUpdate(cls, data);
             }
 
             if (!persist) {
@@ -60,14 +63,14 @@ export default class Manager<T extends AbstractModel> {
         try {
             const e: any = await cls.validate();
 
-            Kernel.logger.debug("[Manager] Saving: ", JSON.stringify(cls.toJSON()));
+            Kernel.logger.debug("[Manager] Saving: ", JSON.stringify(cls));
             await cls.save();
         } catch (e) {
             for (const field in e.errors) {
                 if (e.errors.hasOwnProperty(field)) {
                     this.kernel.emit(
                         "error",
-                        `In ${this.cls.modelName} on object ${cls.identifier}: ` + e.errors[field].message,
+                        `In ${this.cls.modelName} on object ${cls.identifier} for ${field}: ` + e.errors[field].message,
                     );
                 }
             }

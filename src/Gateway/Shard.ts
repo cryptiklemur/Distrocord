@@ -142,7 +142,7 @@ export default class Shard extends EventEmitter {
 
         try {
             const guild = await this.kernel.guilds.add(_guild);
-            if (this.kernel.configuration.getAllUsers && await guild.members.count() < guild.memberCount) {
+            if (this.kernel.configuration.getAllUsers && guild.members.length < guild.memberCount) {
                 // guild.fetchAllMembers();
                 // @todo Fetch all members
             }

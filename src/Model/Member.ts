@@ -1,51 +1,30 @@
-import {Long} from "bson";
-import {arrayProp, instanceMethod, InstanceType, prop, Ref} from "typegoose";
+import {fragment, index, prop} from "mongot";
 import Kernel from "../Kernel";
-import AbstractModel from "./AbstractModel";
 import Guild from "./Guild";
-import Permission from "./Permission";
-import Role from "./Role";
+import ModelInterface from "./ModelInterface";
 import User from "./User";
 
-export default class Member extends AbstractModel {
-    @prop({ref: User, required: true})
-    public user: Ref<User>;
+@fragment
+@index("user")
+@index("joinedAt")
+export default class Member extends User implements ModelInterface {
+    @prop
+    public user: string;
 
-    @prop({ref: {name: "Guild"}, required: true})
-    public guild: Ref<Guild>;
+    @prop
+    public nick?: string;
 
-    @prop()
+    @prop
     public joinedAt: Date;
 
-    @prop()
-    public nick: string;
+    @prop
+    public roles: string[];
 
-    @arrayProp({itemsRef: {name: "Role"}})
-    public roles: Array<Ref<Role>>;
+    public guild: Guild;
 
-    @instanceMethod
-    public async initialize(this: InstanceType<Member>, data: any, kernel: Kernel, parent?: Guild): Promise<void> {
-        this.guild      = parent;
-        this.identifier = data.user.id;
-        this.user       = await kernel.users.get(Long.fromString(data.user.id));
+    public kernel: Kernel;
 
-        await this.update(data, kernel);
-    }
-
-    @instanceMethod
-    public async update(this: InstanceType<Member>, data: any, kernel: Kernel): Promise<void> {
-        this.joinedAt = data.joined_at !== undefined ? new Date(data.joined_at) : this.joinedAt;
-        this.nick     = data.nick !== undefined ? data.nick : this.nick || null;
-        if (data.roles !== undefined) {
-            this.roles = [];
-            for (const id of data.roles) {
-                const role = await (this.guild as Guild).roles.get(id);
-                if (role) {
-                    this.roles.push(role);
-                }
-            }
-        }
+    public get identifier(): string {
+        return this.user;
     }
 }
-
-export const MemberModel = new Member().getModelForClass(Member);

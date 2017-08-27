@@ -1,19 +1,26 @@
-import {instanceMethod, InstanceType, prop} from "typegoose";
 import {Permissions} from "../Config/Constants";
 import Kernel from "../Kernel";
-import AbstractModel from "./AbstractModel";
+import ModelInterface from "./ModelInterface";
+import {fragment, prop, SchemaFragment} from "mongot";
 
-export default class Permission extends AbstractModel {
+@fragment
+export default class Permission extends SchemaFragment implements ModelInterface {
+    @prop
+    public identifier: string;
 
-    @prop({required: true})
+    @prop
     public allow: number;
 
-    @prop({required: true, default: 0})
-    public deny: number;
+    @prop
+    public deny: number = 0;
 
-    private _json: any;
+    public kernel: Kernel;
 
-    get json(): any {
+    public get createdAt(): Date {
+        return new Date((+this.identifier / 4194304) + 1420070400000);
+    }
+
+    public get json(): any {
         if (!this._json) {
             this._json = {};
             for (const perm of Object.keys(Permissions)) {
@@ -29,31 +36,15 @@ export default class Permission extends AbstractModel {
         return this._json;
     }
 
+    private _json: any;
+
     /**
      * Check if this permission allows a specific permission
      * @arg {String} permission The name of the permission. [A full list of permission nodes can be found on the docs
      *     reference page](/Eris/docs/reference)
      * @returns {Boolean} Whether the permission allows the specified permission
      */
-    @instanceMethod
-    public has(this: InstanceType<Permission>, permission: string): boolean {
+    public has(permission: string): boolean {
         return !!(this.allow & Permissions[permission]);
     }
-
-    @instanceMethod
-    public async initialize(
-        this: InstanceType<Permission>,
-        data: any,
-        kernel: Kernel,
-        parent?: AbstractModel,
-    ): Promise<void> {
-        await this.update(data, kernel);
-    }
-
-    @instanceMethod
-    public async update(this: InstanceType<Permission>, data: any, kernel: Kernel): Promise<void> {
-        return;
-    }
 }
-
-export const PermissionModel = new Permission().getModelForClass(Permission);

@@ -9,13 +9,23 @@ import * as Endpoints from "./Config/Endpoints";
 import RequestHandler from "./Handler/RequestHandler";
 import ShardHandler from "./Handler/ShardHandler";
 import Collection from "./Helper/Collection";
+import AbstractModelManager from "./Manager/AbstractModelManager";
+import ChannelManager from "./Manager/ChannelManager";
+import GuildManager from "./Manager/GuildManager";
 import Manager from "./Manager/Manager";
+import MemberManager from "./Manager/MemberManager";
+import PermissionManager from "./Manager/PermissionManager";
+import PermissionOverwriteManager from "./Manager/PermissionOverwriteManager";
+import RoleManager from "./Manager/RoleManager";
+import UserManager from "./Manager/UserManager";
 import Channel, {ChannelModel} from "./Model/Channel";
 import Guild, {GuildModel} from "./Model/Guild";
+import ModelInterface from "./Model/ModelInterface";
 import {default as User, Status, UserModel} from "./Model/User";
 
 // Set global promises
 (mongoose as any).Promise = global.Promise;
+// require('mongoose-long')(mongoose);
 
 export default class Kernel extends EventEmitter {
     public static logger: LoggerInstance;
@@ -26,10 +36,11 @@ export default class Kernel extends EventEmitter {
     public requestHandler: RequestHandler;
     public shardHandler: ShardHandler;
     public presence: { game: any; status: Status };
-    public guildShardMap: { [id: string]: number }   = {};
-    public channelGuildMap: { [id: string]: Long }   = {};
-    public privateChannelMap: { [id: string]: Long } = {};
+    public guildShardMap: { [id: string]: number }                                 = {};
+    public channelGuildMap: { [id: string]: Long }                                 = {};
+    public privateChannelMap: { [id: string]: Long }                               = {};
     public unavailableGuilds: Collection<any>;
+    public modelManagers: { [name: string]: AbstractModelManager<ModelInterface> } = {};
 
     public user: User;
     public guilds: Manager<Guild>;
@@ -72,9 +83,18 @@ export default class Kernel extends EventEmitter {
         this.requestHandler    = new RequestHandler(this);
         this.shardHandler      = new ShardHandler(this);
         this.unavailableGuilds = new Collection<Guild>(Guild);
-        this.guilds            = new Manager<Guild>(this, GuildModel);
-        this.users             = new Manager<User>(this, UserModel);
-        this.privateChannels   = new Manager<Channel>(this, ChannelModel);
+
+        this.modelManagers.member              = new MemberManager(this);
+        this.modelManagers.channel             = new ChannelManager(this);
+        this.modelManagers.guild               = new GuildManager(this);
+        this.modelManagers.permission          = new PermissionManager(this);
+        this.modelManagers.permissionOverwrite = new PermissionOverwriteManager(this);
+        this.modelManagers.role                = new RoleManager(this);
+        this.modelManagers.user                = new UserManager(this);
+
+        this.guilds          = new Manager<Guild>(this, GuildModel, this.modelManagers.guild);
+        this.users           = new Manager<User>(this, UserModel, this.modelManagers.user);
+        this.privateChannels = new Manager<Channel>(this, ChannelModel, this.modelManagers.chanel);
 
         this.presence = {
             game:   null,

@@ -16,7 +16,7 @@
   version "0.0.33"
   resolved "https://registry.yarnpkg.com/@types/es6-promise/-/es6-promise-0.0.33.tgz#280a707e62b1b6bef1a86cc0861ec63cd06c7ff3"
 
-"@types/mongodb@*", "@types/mongodb@^2.2.10":
+"@types/mongodb@*", "@types/mongodb@^2.2.10", "@types/mongodb@^2.2.9":
   version "2.2.10"
   resolved "https://registry.yarnpkg.com/@types/mongodb/-/mongodb-2.2.10.tgz#b8a9c009f498b2ee815dedf7f6efa616c2d997c4"
   dependencies:
@@ -44,6 +44,10 @@
 "@types/node@*", "@types/node@^8.0.25":
   version "8.0.25"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.25.tgz#66ecaf4df93f5281b48427ee96fbcdfc4f0cdce1"
+
+"@types/node@^7.0.39":
+  version "7.0.43"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-7.0.43.tgz#a187e08495a075f200ca946079c914e1a5fe962c"
 
 "@types/node_redis@^0.8.29":
   version "0.8.29"
@@ -1623,13 +1627,17 @@ mongodb-core@2.1.15:
     bson "~1.0.4"
     require_optional "~1.0.0"
 
-mongodb@*, mongodb@2.2.31:
+mongodb@*, mongodb@2.2.31, mongodb@^2.2.31:
   version "2.2.31"
   resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-2.2.31.tgz#1940445c661e19217bb3bf8245d9854aaef548db"
   dependencies:
     es6-promise "3.2.1"
     mongodb-core "2.1.15"
     readable-stream "2.2.7"
+
+mongoose-long@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/mongoose-long/-/mongoose-long-0.1.1.tgz#cc32e05b0cf50c85e25a19359d43a936fe9505a3"
 
 mongoose@^4.11.8, mongoose@^4.7.3:
   version "4.11.8"
@@ -1647,6 +1655,14 @@ mongoose@^4.11.8, mongoose@^4.7.3:
     muri "1.2.2"
     regexp-clone "0.0.1"
     sliced "1.0.1"
+
+mongot@^1.4.12:
+  version "1.4.12"
+  resolved "https://registry.yarnpkg.com/mongot/-/mongot-1.4.12.tgz#60ede727d8648f53d77612a7cb68cc7704d1229b"
+  dependencies:
+    "@types/mongodb" "^2.2.9"
+    "@types/node" "^7.0.39"
+    mongodb "^2.2.31"
 
 mpath@0.3.0:
   version "0.3.0"

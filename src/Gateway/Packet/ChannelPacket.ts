@@ -72,7 +72,12 @@ type ChannelPacket = {
     /**
      * application id of the group DM creator if it is bot-created
      */
-    application_id?: Long
+    application_id?: Long,
+
+    /**
+     * whether the channel is marked as NSFW
+     */
+    nsfw?: boolean
 };
 
 export default ChannelPacket;
