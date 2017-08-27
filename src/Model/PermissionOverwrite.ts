@@ -10,13 +10,20 @@ export default class PermissionOverwrite extends Permission {
     public type: Type;
 
     @instanceMethod
-    public async initialize(this: InstanceType<PermissionOverwrite>, data: any, kernel: Kernel, parent?: Base) {
-        throw new Error("Method not implemented.");
+    public async initialize(
+        this: InstanceType<PermissionOverwrite>,
+        data: any,
+        kernel: Kernel,
+        parent?: Base,
+    ): Promise<void> {
+        this.type = data.type;
+
+        await this.update(data, kernel);
     }
 
     @instanceMethod
-    public async update(this: InstanceType<PermissionOverwrite>, kernel: Kernel) {
-        throw new Error("Method not implemented.");
+    public async update(this: InstanceType<PermissionOverwrite>, kernel: Kernel): Promise<void> {
+        return;
     }
 }
 

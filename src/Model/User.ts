@@ -20,8 +20,8 @@ export default class User extends AbstractModel {
     /**
      * @type {Status} Online status of the user
      */
-    @prop({index: true, required: true})
-    public status: Status;
+    @prop({index: true})
+    public status?: Status;
 
     /**
      * @type {string|null} Game the user is playing
@@ -47,13 +47,22 @@ export default class User extends AbstractModel {
     }
 
     @instanceMethod
-    public initialize(this: InstanceType<User>, data: any, kernel: Kernel, parent?: AbstractModel): Promise<any> {
-        return undefined;
+    public async initialize(
+        this: InstanceType<User>,
+        data: any,
+        kernel: Kernel,
+        parent?: AbstractModel,
+    ): Promise<void> {
+        this.bot = !!data.bot;
+
+        await this.update(data, kernel);
     }
 
     @instanceMethod
-    public update(this: InstanceType<User>, data: any, kernel: Kernel): Promise<any> {
-        return undefined;
+    public async update(this: InstanceType<User>, data: any, kernel: Kernel): Promise<void> {
+        this.avatar        = data.avatar !== undefined ? data.avatar : this.avatar;
+        this.username      = data.username !== undefined ? data.username : this.username;
+        this.discriminator = data.discriminator !== undefined ? data.discriminator : this.discriminator;
     }
 }
 

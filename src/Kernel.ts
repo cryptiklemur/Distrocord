@@ -1,6 +1,8 @@
 import {Long} from "bson";
 import {EventEmitter} from "eventemitter3";
 import * as mongoose from "mongoose";
+import * as winston from "winston";
+import {LoggerInstance} from "winston";
 import Configuration from "./Config/Configuration";
 import * as Constants from "./Config/Constants";
 import * as Endpoints from "./Config/Endpoints";
@@ -8,11 +10,16 @@ import RequestHandler from "./Handler/RequestHandler";
 import ShardHandler from "./Handler/ShardHandler";
 import Collection from "./Helper/Collection";
 import Manager from "./Manager/Manager";
-import Channel from "./Model/Channel";
-import Guild from "./Model/Guild";
-import {default as User, Status} from "./Model/User";
+import Channel, {ChannelModel} from "./Model/Channel";
+import Guild, {GuildModel} from "./Model/Guild";
+import {default as User, Status, UserModel} from "./Model/User";
+
+// Set global promises
+(mongoose as any).Promise = global.Promise;
 
 export default class Kernel extends EventEmitter {
+    public static logger: LoggerInstance;
+
     public configuration: Configuration;
     public token: string;
     public gatewayURL: string;
@@ -30,8 +37,9 @@ export default class Kernel extends EventEmitter {
     public privateChannels: Manager<Channel>;
 
     private ready: boolean;
-    private startTime: number   = 0;
-    private lastConnect: number = 0;
+    private startTime: number       = 0;
+    private lastConnect: number     = 0;
+    private mongoConnected: boolean = false;
 
     constructor(options: Configuration) {
         super();
@@ -47,12 +55,26 @@ export default class Kernel extends EventEmitter {
             this.configuration.defaultImageSize = 128;
         }
 
+        Kernel.logger = new (winston.Logger)(
+            {
+                level:      this.configuration.logLevel,
+                transports: [
+                    new (winston.transports.Console)(
+                        {
+                            colorize:  true,
+                            timestamp: true,
+                        },
+                    ),
+                ],
+            },
+        );
+
         this.requestHandler    = new RequestHandler(this);
         this.shardHandler      = new ShardHandler(this);
         this.unavailableGuilds = new Collection<Guild>(Guild);
-        this.guilds            = new Manager<Guild>(this, Guild);
-        this.users             = new Manager<User>(this, User);
-        this.privateChannels   = new Manager<Channel>(this, Channel);
+        this.guilds            = new Manager<Guild>(this, GuildModel);
+        this.users             = new Manager<User>(this, UserModel);
+        this.privateChannels   = new Manager<Channel>(this, ChannelModel);
 
         this.presence = {
             game:   null,
@@ -89,6 +111,7 @@ export default class Kernel extends EventEmitter {
      * @returns {Promise} Resolves when all shards are initialized
      */
     public async connect() {
+        Kernel.logger.debug("Connecting");
         return new Promise((resolve, reject) => {
             Promise.all([this.connectToMongo(), this.getBotGateway()])
                    .then((promises) => {
@@ -130,7 +153,15 @@ export default class Kernel extends EventEmitter {
 
     private connectToMongo() {
         return new Promise((resolve, reject) => {
-            mongoose.connect(this.configuration.mongoConnectionUrl).then(resolve).catch(reject);
+            if (this.mongoConnected) {
+                return resolve();
+            }
+
+            mongoose.connect(this.configuration.mongoConnectionUrl).then(() => {
+                this.mongoConnected = true;
+                this.emit("debug", "connected to mongo");
+                resolve();
+            }).catch(reject);
         });
     }
 }

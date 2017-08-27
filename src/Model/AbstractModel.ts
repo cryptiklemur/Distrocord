@@ -3,10 +3,15 @@ import {instanceMethod, InstanceType, ModelType, prop, staticMethod, Typegoose} 
 import Kernel from "../Kernel";
 
 export default abstract class AbstractModel extends Typegoose {
+    /*
     @staticMethod
-    public static async findByIdentifier(this: ModelType<AbstractModel> & typeof AbstractModel, identifier: Long) {
-        return await this.findOne({identifier});
+    public static findByIdentifier(this: ModelType<AbstractModel>, identifier: Long) {
+        return new Promise((resolve, reject) => {
+            console.log(this);
+            this.findOne({identifier}).then(resolve).catch(reject);
+        });
     }
+     */
 
     @prop({required: true, index: true, unique: true})
     public identifier: string;

@@ -4,9 +4,9 @@ import Shard from "../Gateway/Shard";
 import Kernel from "../Kernel";
 import Manager from "../Manager/Manager";
 import AbstractModel from "./AbstractModel";
-import Channel from "./Channel";
-import Member from "./Member";
-import Role from "./Role";
+import Channel, {ChannelModel} from "./Channel";
+import Member, {MemberModel} from "./Member";
+import Role, {RoleModel} from "./Role";
 
 export default class Guild extends AbstractModel {
     /**
@@ -42,14 +42,14 @@ export default class Guild extends AbstractModel {
     /**
      * @type {string} The hash of the guild splash image, or null if no splash (VIP only)
      */
-    @prop({required: true})
-    public splash: string;
+    @prop()
+    public splash?: string;
 
     /**
      * @type {string} The hash of the guild icon, or null if no icon
      */
-    @prop({required: true})
-    public icon: string;
+    @prop()
+    public icon?: string;
 
     /**
      * @type {boolean} Whether the guild is "large" by "some Discord standard"
@@ -78,9 +78,9 @@ export default class Guild extends AbstractModel {
         this.joinedAt    = data.joined_at;
         this.memberCount = data.member_count;
 
-        this.roles    = new Manager<Role>(kernel, Role, this);
-        this.members  = new Manager<Member>(kernel, Member, this);
-        this.channels = new Manager<Channel>(kernel, Channel, this);
+        this.roles    = new Manager<Role>(kernel, RoleModel, this);
+        this.members  = new Manager<Member>(kernel, MemberModel, this);
+        this.channels = new Manager<Channel>(kernel, ChannelModel, this);
 
         for (const role of data.roles) {
             await this.roles.add(role);
@@ -95,7 +95,7 @@ export default class Guild extends AbstractModel {
         }
 
         for (const presence of data.presences || []) {
-            if (!this.members.get(presence.user.id)) {
+            if (!await this.members.get(presence.user.id)) {
                 continue;
             }
 

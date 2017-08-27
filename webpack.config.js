@@ -17,6 +17,9 @@ module.exports = {
     resolve:   {
         extensions: ['.ts', '.tsx', '.js', '.json']
     },
+    watchOptions: {
+        poll: true
+    },
     node:      {
         fs:            'empty',
         child_process: 'empty',

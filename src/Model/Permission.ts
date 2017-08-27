@@ -4,6 +4,7 @@ import Kernel from "../Kernel";
 import AbstractModel from "./AbstractModel";
 
 export default class Permission extends AbstractModel {
+
     @prop({required: true})
     public allow: number;
 
@@ -40,13 +41,18 @@ export default class Permission extends AbstractModel {
     }
 
     @instanceMethod
-    public initialize(this: InstanceType<Permission>, data: any, kernel: Kernel, parent?: AbstractModel): Promise<any> {
-        return undefined;
+    public async initialize(
+        this: InstanceType<Permission>,
+        data: any,
+        kernel: Kernel,
+        parent?: AbstractModel,
+    ): Promise<void> {
+        await this.update(data, kernel);
     }
 
     @instanceMethod
-    public update(this: InstanceType<Permission>, data: any, kernel: Kernel): Promise<any> {
-        return undefined;
+    public async update(this: InstanceType<Permission>, data: any, kernel: Kernel): Promise<void> {
+        return;
     }
 }
 

@@ -18,8 +18,10 @@ export default class GuildCreateEvent extends AbstractEvent {
             return;
         }
 
-        // If shard isn't ready, just remove from unavailable, and reset timeout
+        const guild   = this.shard.createGuild(this.data);
         const removed = this.kernel.unavailableGuilds.remove(this.data);
+
+        // If shard isn't ready, just remove from unavailable, and reset timeout
         if (!this.shard.ready) {
             this.shard.restartGuildCreateTimeout();
 
@@ -27,7 +29,6 @@ export default class GuildCreateEvent extends AbstractEvent {
         }
 
         // Otherwise, see if we removed from unavailable. If we did, emit available, otherwise, created.
-        const guild = this.shard.createGuild(this.data);
         if (removed) {
             this.emit("guildAvailable", guild);
 

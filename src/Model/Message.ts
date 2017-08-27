@@ -12,8 +12,8 @@ export enum MessageType {
     CHANNEL_NAME_CHANGE,
     CHANNEL_ICON_CHANGE,
     CHANNEL_PINNED_MESSAGE,
-    GUILD_MEMBER_JOIN
-};
+    GUILD_MEMBER_JOIN,
+}
 
 export default class Message {
     public identifier: Long;
@@ -26,9 +26,9 @@ export default class Message {
 
     public tts: boolean;
 
-    public attachments: Array<any>;
+    public attachments: any[];
 
-    public embeds: Array<any>;
+    public embeds: any[];
 
     public reactions: any;
 

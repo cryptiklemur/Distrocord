@@ -6,14 +6,12 @@ import Bucket from "../Helper/Bucket";
 import Kernel from "../Kernel";
 import Guild from "../Model/Guild";
 import {Status} from "../Model/User";
-import * as Events from "./Event";
+import Events from "./Event";
 import AbstractEvent from "./Event/AbstractEvent";
-import Timer = NodeJS.Timer;
 
 let Erlpack: any;
 try {
     Erlpack = require("erlpack");
-    console.log("USING ERLPACK");
 } catch (e) {
     // Couldn't load
 }
@@ -142,13 +140,18 @@ export default class Shard extends EventEmitter {
     public async createGuild(_guild): Promise<Guild> {
         this.kernel.guildShardMap[_guild.id] = this.id;
 
-        const guild = await this.kernel.guilds.add(_guild);
-        if (this.kernel.configuration.getAllUsers && await guild.members.count() < guild.memberCount) {
-            // guild.fetchAllMembers();
-            // @todo Fetch all members
-        }
+        try {
+            const guild = await this.kernel.guilds.add(_guild);
+            if (this.kernel.configuration.getAllUsers && await guild.members.count() < guild.memberCount) {
+                // guild.fetchAllMembers();
+                // @todo Fetch all members
+            }
 
-        return guild;
+            return guild;
+        } catch (e) {
+            Kernel.logger.error(e);
+            throw e;
+        }
     }
 
     public checkReady() {
@@ -230,7 +233,7 @@ export default class Shard extends EventEmitter {
                 switch (packet.op) {
                     case OPCodes.EVENT: {
                         if (!this.kernel.configuration.disableEvents[packet.t]) {
-                            this.wsEvent(packet);
+                            this.wsEvent(packet).catch((err) => this.kernel.emit("error", err));
                         }
                         break;
                     }
@@ -510,12 +513,14 @@ export default class Shard extends EventEmitter {
         this.emit("rawWS", packet);
 
         return new Promise((resolve: any, reject) => {
+            const clsName: string = this.getClassFromType(packet.t);
             try {
-                const instance: AbstractEvent = new Events[this.getClassFromType(packet.t)](this.kernel, this);
+                const instance: AbstractEvent = new Events[clsName](this.kernel, this);
                 packet.d                      = this.castFields(packet.d);
 
                 instance.doHandle(packet).then(resolve).catch(reject);
             } catch (e) {
+                this.kernel.emit("error", "Failed to handle event for packet type: ", packet.t + " - " + clsName);
                 reject(e);
             }
         });
@@ -585,6 +590,8 @@ export default class Shard extends EventEmitter {
         if (this.presence.status) {
             identify.presence = this.presence;
         }
+
+        this.emit("debug", "Identifying with: ", identify);
 
         this.sendWS(OPCodes.IDENTIFY, identify);
     }

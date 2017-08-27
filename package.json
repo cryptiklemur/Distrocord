@@ -5,18 +5,20 @@
     "scripts": {
         "build": "webpack --config webpack.config.js",
         "watch": "mkdir -p build && webpack --config webpack.config.js --watch",
-        "start": "nodemon -w ./build --harmony build/index.js",
-        "dev": "concurrently --kill-others \"yarn run watch\" \"sleep 60; yarn run start\""
+        "start": "nodemon --delay 3 -w ./build --harmony build/index.js",
+        "dev": "concurrently --kill-others \"yarn run watch\" \"sleep 15; yarn run start\""
     },
     "dependencies": {
         "@types/bluebird": "^3.5.8",
         "@types/es6-promise": "^0.0.33",
         "@types/mongodb": "^2.2.10",
         "@types/mongoose": "^4.7.21",
+        "@types/mongoose-promise": "^4.5.7",
         "@types/node": "^8.0.25",
         "@types/node_redis": "^0.8.29",
         "@types/redis": "^2.6.0",
         "@types/uws": "^0.13.0",
+        "@types/winston": "^2.3.5",
         "bluebird": "^3.5.0",
         "concurrently": "^3.5.0",
         "erlpack": "^0.1.2",
@@ -36,6 +38,7 @@
         "uws": "^8.14.1",
         "validator.ts": "^0.2.2",
         "webpack": "^3.5.5",
+        "winston": "^2.3.1",
         "zlib": "^1.0.5"
     }
 }

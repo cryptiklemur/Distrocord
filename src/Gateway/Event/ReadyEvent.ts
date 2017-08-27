@@ -1,3 +1,4 @@
+import Kernel from "../../Kernel";
 import ReadyPacket from "../Packet/ReadyPacket";
 import AbstractEvent from "./AbstractEvent";
 
@@ -29,27 +30,29 @@ export default class ReadyEvent extends AbstractEvent {
             return;
         }
 
-        this.kernel.user = await this.kernel.users.add(this.data);
+        this.kernel.user = await this.kernel.users.add(this.data.user);
         if (this.data._trace) {
             this.shard.discordServerTrace = this.data._trace;
         }
 
         this.shard.sessionID = this.data.session_id;
 
-        this.data.guilds.forEach(async (guild) => {
+        Kernel.logger.silly("[READY] Looping through guilds");
+        for (const guild of this.data.guilds) {
             if (guild.unavailable) {
                 this.kernel.unavailableGuilds.add(guild, this.kernel, true);
             } else {
                 this.kernel.unavailableGuilds.remove(this.shard.createGuild(guild));
             }
-        });
+        }
 
-        this.data.private_channels.forEach(async (channel) => {
+        Kernel.logger.silly("[READY] Looping through private channels");
+        for (const channel of this.data.private_channels) {
             if (channel.type === undefined || channel.type === 1) {
                 this.kernel.privateChannelMap[channel.recipients[0].id.toString()] = channel.id;
                 await this.kernel.privateChannels.add(channel);
             }
-        });
+        }
 
         this.shard.preReady = true;
         this.kernel.emit("shardPreReady", this.shard.id);
