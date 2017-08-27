@@ -1,6 +1,6 @@
 import {Long} from "bson";
 import {EventEmitter} from "eventemitter3";
-import WebSocket from "uws";
+import * as WebSocket from "uws";
 import {GATEWAY_VERSION, GatewayOPCodes as OPCodes} from "../Config/Constants";
 import Bucket from "../Helper/Bucket";
 import Kernel from "../Kernel";
@@ -13,6 +13,7 @@ import Timer = NodeJS.Timer;
 let Erlpack: any;
 try {
     Erlpack = require("erlpack");
+    console.log("USING ERLPACK");
 } catch (e) {
     // Couldn't load
 }
@@ -570,12 +571,12 @@ export default class Shard extends EventEmitter {
         const identify: any = {
             token:           this.kernel.token,
             v:               GATEWAY_VERSION,
-            compress:        true,
+            compress:        Erlpack !== undefined,
             large_threshold: 250,
             properties:      {
                 os:      process.platform,
-                browser: "Eris",
-                device:  "Eris",
+                browser: "Distrocord",
+                device:  "Distrocord",
             },
         };
         if (this.kernel.configuration.maxShards > 1) {

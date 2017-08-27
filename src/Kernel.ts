@@ -1,4 +1,6 @@
+import {Long} from "bson";
 import {EventEmitter} from "eventemitter3";
+import * as mongoose from "mongoose";
 import Configuration from "./Config/Configuration";
 import * as Constants from "./Config/Constants";
 import * as Endpoints from "./Config/Endpoints";
@@ -7,8 +9,6 @@ import ShardHandler from "./Handler/ShardHandler";
 import Collection from "./Helper/Collection";
 import Manager from "./Manager/Manager";
 import Channel from "./Model/Channel";
-
-import {Long} from "bson";
 import Guild from "./Model/Guild";
 import {default as User, Status} from "./Model/User";
 
@@ -19,7 +19,7 @@ export default class Kernel extends EventEmitter {
     public requestHandler: RequestHandler;
     public shardHandler: ShardHandler;
     public presence: { game: any; status: Status };
-    public guildShardMap: { [id: string]: number }     = {};
+    public guildShardMap: { [id: string]: number }   = {};
     public channelGuildMap: { [id: string]: Long }   = {};
     public privateChannelMap: { [id: string]: Long } = {};
     public unavailableGuilds: Collection<any>;
@@ -88,36 +88,49 @@ export default class Kernel extends EventEmitter {
      * Tells all shards to connect.
      * @returns {Promise} Resolves when all shards are initialized
      */
-    public connect() {
-        return this.getBotGateway().then((data) => {
-            this.configuration.maxShards = data.shards;
+    public async connect() {
+        return new Promise((resolve, reject) => {
+            Promise.all([this.connectToMongo(), this.getBotGateway()])
+                   .then((promises) => {
+                       const data                   = promises[1];
+                       this.configuration.maxShards = data.shards;
 
-            if (this.configuration.lastShard === undefined) {
-                this.configuration.lastShard = data.shards - 1;
-            }
+                       if (this.configuration.lastShard === undefined) {
+                           this.configuration.lastShard = data.shards - 1;
+                       }
 
-            if (!data.url) {
-                return Promise.reject(new Error("Invalid response from gateway REST call"));
-            }
-            if (data.url.includes("?")) {
-                data.url = data.url.substring(0, data.url.indexOf("?"));
-            }
-            if (!data.url.endsWith("/")) {
-                data.url += "/";
-            }
-            this.gatewayURL = `${data.url}?v=${Constants.GATEWAY_VERSION}&encoding=etf`;
+                       if (!data.url) {
+                           return Promise.reject(new Error("Invalid response from gateway REST call"));
+                       }
+                       if (data.url.includes("?")) {
+                           data.url = data.url.substring(0, data.url.indexOf("?"));
+                       }
+                       if (!data.url.endsWith("/")) {
+                           data.url += "/";
+                       }
+                       this.gatewayURL = `${data.url}?v=${Constants.GATEWAY_VERSION}&encoding=etf`;
 
-            for (let i = this.configuration.firstShard; i <= this.configuration.lastShard; i++) {
-                this.shardHandler.spawn(i);
-            }
-        }).catch((err) => {
-            if (!this.configuration.autoReconnect) {
-                return Promise.reject(err);
-            }
-            this.emit("error", err);
-            return new Promise((res, rej) => {
-                setTimeout(() => this.connect().then(res).catch(rej), 2000);
-            });
+                       for (let i = this.configuration.firstShard; i <= this.configuration.lastShard; i++) {
+                           this.shardHandler.spawn(i);
+                       }
+
+                       resolve();
+                   })
+                   .catch((err) => {
+                       if (!this.configuration.autoReconnect) {
+                           return reject(err);
+                       }
+
+                       this.emit("error", err);
+
+                       setTimeout(() => this.connect().then(resolve).catch(reject), 2000);
+                   });
+        });
+    }
+
+    private connectToMongo() {
+        return new Promise((resolve, reject) => {
+            mongoose.connect(this.configuration.mongoConnectionUrl).then(resolve).catch(reject);
         });
     }
 }
