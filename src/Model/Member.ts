@@ -1,23 +1,23 @@
-import Kernel from "../Kernel";
 import {arrayProp, instanceMethod, InstanceType, prop, Ref} from "typegoose";
-import User from "./User";
-import Guild from "./Guild";
+import Kernel from "../Kernel";
 import AbstractModel from "./AbstractModel";
-import Role from "./Role";
+import Guild from "./Guild";
 import Permission from "./Permission";
+import Role from "./Role";
+import User from "./User";
 
 export default class Member extends AbstractModel {
-    @prop({ref: User})
+    @prop({ref: User, required: true})
     public user: Ref<User>;
 
-    @prop({ref: Guild})
+    @prop({ref: {name: "Guild"}, required: true})
     public guild: Ref<Guild>;
 
     @prop()
     public joinedAt: Date;
 
-    @arrayProp({itemsRef: Role})
-    public roles: Ref<Role>[];
+    @arrayProp({itemsRef: {name: "Role"}})
+    public roles: Array<Ref<Role>>;
 
     @prop()
     public permission: Permission;

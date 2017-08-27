@@ -1,4 +1,4 @@
-import Constants from "./Constants";
+import * as Constants from "./Constants";
 
 export const BASE_URL = "/api/v" + Constants.GATEWAY_VERSION;
 export const CDN_URL  = "https://cdn.discordapp.com";

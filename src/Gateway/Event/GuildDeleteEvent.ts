@@ -19,9 +19,9 @@ export default class GuildDeleteEvent extends AbstractEvent {
         }
 
         delete this.kernel.guildShardMap[this.data.id.toString()];
-        let guild = await this.kernel.guilds.remove(this.data.id);
+        const guild = await this.kernel.guilds.remove(this.data.id);
         if (guild !== undefined) { // Discord sends GUILD_DELETE for guilds that were previously unavailable in READY
-            await guild.channels.forEach(channel => delete this.kernel.channelGuildMap[channel.id.toString()], true);
+            await guild.channels.forEach((channel) => delete this.kernel.channelGuildMap[channel.id.toString()], true);
         }
 
         this.emit("guildDelete", guild || this.data);

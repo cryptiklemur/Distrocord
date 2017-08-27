@@ -1,8 +1,27 @@
 {
     "compilerOptions": {
+        "outDir":                 "./build/",
         "moduleResolution":       "Node",
-        "module":                 "esnext",
+        "lib":                    [
+            "es6"
+        ],
+        "types":                  [
+            "node",
+            "reflect-metadata"
+        ],
+        "module":                 "commonjs",
         "experimentalDecorators": true,
-        "target":                 "ES6"
-    }
+        "emitDecoratorMetadata":  true,
+        "pretty": true,
+        "target":                 "ES6",
+        "noImplicitAny":          false,
+        "sourceMap":              true,
+        "skipLibCheck":           true
+    },
+    "include":         [
+        "src/**/*.ts"
+    ],
+    "exclude":         [
+        "node_modules"
+    ]
 }

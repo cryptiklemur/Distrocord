@@ -6,7 +6,7 @@ import Permission from "./Permission";
 export type Type = "member" | "role";
 
 export default class PermissionOverwrite extends Permission {
-    @prop()
+    @prop({required: true})
     public type: Type;
 
     @instanceMethod

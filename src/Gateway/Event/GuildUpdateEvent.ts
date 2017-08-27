@@ -12,8 +12,8 @@ export default class GuildUpdateEvent extends AbstractEvent {
     }
 
     public async handle(): Promise<void> {
-        let guild    = await this.kernel.guilds.get(this.data.id);
-        let oldGuild = {
+        const guild    = await this.kernel.guilds.get(this.data.id);
+        const oldGuild = {
             name:              guild.name,
             verificationLevel: guild.verificationLevel,
             splash:            guild.splash,

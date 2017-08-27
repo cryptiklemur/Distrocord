@@ -1,8 +1,8 @@
 export default class MultipartData {
     private boundary: string = "----------------DistroDiscord";
-    private bufs: Array<any> = [];
+    private bufs: any[] = [];
 
-    attach(fieldName, data, filename) {
+    public attach(fieldName, data, filename) {
         if (data === undefined) {
             return;
         }
@@ -23,7 +23,7 @@ export default class MultipartData {
         this.bufs.push(data);
     }
 
-    finish() {
+    public finish() {
         this.bufs.push(new Buffer("\r\n--" + this.boundary + "--"));
 
         return this.bufs;

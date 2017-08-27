@@ -1,13 +1,17 @@
 import {Long} from "bson";
 import {instanceMethod, InstanceType, ModelType, prop, staticMethod, Typegoose} from "typegoose";
 import Kernel from "../Kernel";
-import ModelInterface from "./ModelInterface";
 
-export default abstract class AbstractModel extends Typegoose implements ModelInterface {
+export default abstract class AbstractModel extends Typegoose {
+    @staticMethod
+    public static async findByIdentifier(this: ModelType<AbstractModel> & typeof AbstractModel, identifier: Long) {
+        return await this.findOne({identifier});
+    }
+
     @prop({required: true, index: true, unique: true})
-    public identifier: Long;
+    public identifier: string;
 
-    @instanceMethod @prop({index: true})
+    @prop({index: true})
     public get createdAt(this: InstanceType<AbstractModel>): number {
         return (+this.identifier.toString() / 4194304) + 1420070400000;
     }
@@ -16,22 +20,20 @@ export default abstract class AbstractModel extends Typegoose implements ModelIn
 
     public abstract async update(data: any, kernel: Kernel);
 
-    @staticMethod
-    public static async findByIdentifier(this: ModelType<AbstractModel> & typeof AbstractModel, identifier: Long) {
-        return await this.findOne({identifier});
-    }
-
-    public toJSON(arg, cache) {
-        cache = cache || [];
+    @instanceMethod
+    public toJSON(this: InstanceType<AbstractModel>, cache: any[] = []) {
         if (~cache.indexOf(this)) {
             return "[Circular]";
         } else {
             cache.push(this);
         }
 
-        let copy: any = {};
-        for (var key in this) {
-            let val: any = this[key];
+        const copy: any = {};
+        for (const key in this) {
+            if (!this.hasOwnProperty(key)) {
+                continue;
+            }
+            const val: any = this[key];
 
             if (this.hasOwnProperty(key) && !key.startsWith("_")) {
                 if (this[key] instanceof Set) {
@@ -43,17 +45,6 @@ export default abstract class AbstractModel extends Typegoose implements ModelIn
                 } else {
                     copy[key] = val;
                 }
-            }
-        }
-        return copy;
-    }
-
-    public inspect() {
-        // http://stackoverflow.com/questions/5905492/dynamic-function-name-in-javascript
-        let copy = new (new Function(`return function ${this.constructor.name}(){}`)());
-        for (let key in this) {
-            if (this.hasOwnProperty(key) && !key.startsWith("_") && this[key]) {
-                copy[key] = this[key];
             }
         }
         return copy;

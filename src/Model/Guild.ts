@@ -1,5 +1,5 @@
-import {Long} from "bson";
 import {instanceMethod, InstanceType, prop} from "typegoose";
+import GuildPacket from "../Gateway/Packet/GuildPacket";
 import Shard from "../Gateway/Shard";
 import Kernel from "../Kernel";
 import Manager from "../Manager/Manager";
@@ -16,45 +16,45 @@ export default class Guild extends AbstractModel {
     public name: string;
 
     /**
-     * @type {Long} The user that is the guild owner
+     * @type {string} The user that is the guild owner
      */
-    @prop()
-    public ownerId: Long;
+    @prop({required: true})
+    public ownerId: string;
 
     /**
-     * @type {Date|number} Timestamp of when the bot account joined the guild
+     * @type {Date} Timestamp of when the bot account joined the guild
      */
-    @prop({index: true})
-    public joinedAt: number;
+    @prop({index: true, required: true})
+    public joinedAt: Date;
 
     /**
      * @type {number} The guild verification level
      */
-    @prop()
+    @prop({required: true})
     public verificationLevel: number;
 
     /**
      * @type {string} The guild region
      */
-    @prop()
+    @prop({required: true})
     public region: string;
 
     /**
      * @type {string} The hash of the guild splash image, or null if no splash (VIP only)
      */
-    @prop()
+    @prop({required: true})
     public splash: string;
 
     /**
      * @type {string} The hash of the guild icon, or null if no icon
      */
-    @prop()
+    @prop({required: true})
     public icon: string;
 
     /**
      * @type {boolean} Whether the guild is "large" by "some Discord standard"
      */
-    @prop({index: true})
+    @prop({index: true, required: true})
     public large: boolean;
 
     public shard: Shard;
@@ -62,7 +62,7 @@ export default class Guild extends AbstractModel {
     /**
      * @type {number} Number of members in the guild
      */
-    @prop()
+    @prop({required: true})
     public memberCount: number;
 
     public roles: Manager<Role>;
@@ -72,39 +72,40 @@ export default class Guild extends AbstractModel {
     public channels: Manager<Channel>;
 
     @instanceMethod
-    public async initialize(this: InstanceType<Guild>, data: any, kernel: Kernel, parent?: AbstractModel) {
-        this.identifier  = Long.fromString(data.id);
+    public async initialize(this: InstanceType<Guild>, data: GuildPacket, kernel: Kernel, parent?: AbstractModel) {
+        this.identifier  = data.id.toString();
         this.shard       = kernel.shardHandler.get(kernel.guildShardMap[this.id]);
-        this.joinedAt    = Date.parse(data.joined_at);
+        this.joinedAt    = data.joined_at;
         this.memberCount = data.member_count;
 
         this.roles    = new Manager<Role>(kernel, Role, this);
         this.members  = new Manager<Member>(kernel, Member, this);
         this.channels = new Manager<Channel>(kernel, Channel, this);
 
-        for (let role of data.roles) {
+        for (const role of data.roles) {
             await this.roles.add(role);
         }
 
-        for (let channel of data.channels || []) {
+        for (const channel of data.channels || []) {
             await this.channels.add(channel);
         }
 
-        for (let member of data.members || []) {
+        for (const member of data.members || []) {
             await this.members.add(member);
         }
 
-        for (let presence of data.presences || []) {
+        for (const presence of data.presences || []) {
             if (!this.members.get(presence.user.id)) {
                 continue;
             }
 
-            await this.members.update(Long.fromString(presence.user.id), presence);
+            await this.members.update(presence.user.id, presence);
         }
 
         await this.update(data, kernel);
     }
 
+    @instanceMethod
     public async update(this: InstanceType<Guild>, data: any, kernel: Kernel) {
         this.name              = data.name !== undefined ? data.name : this.name;
         this.verificationLevel =

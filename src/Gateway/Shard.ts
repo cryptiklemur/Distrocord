@@ -1,3 +1,4 @@
+import {Long} from "bson";
 import {EventEmitter} from "eventemitter3";
 import WebSocket from "uws";
 import {GATEWAY_VERSION, GatewayOPCodes as OPCodes} from "../Config/Constants";
@@ -5,41 +6,46 @@ import Bucket from "../Helper/Bucket";
 import Kernel from "../Kernel";
 import Guild from "../Model/Guild";
 import {Status} from "../Model/User";
+import * as Events from "./Event";
 import AbstractEvent from "./Event/AbstractEvent";
 import Timer = NodeJS.Timer;
-import {Long} from "bson";
 
-const Erlpack: any = require("erlpack");
+let Erlpack: any;
+try {
+    Erlpack = require("erlpack");
+} catch (e) {
+    // Couldn't load
+}
 
 export default class Shard extends EventEmitter {
     public status: string;
     public ready: boolean;
-
-    private heartbeatInterval: Timer | number;
+    public discordServerTrace: any;
+    public sessionID: any;
+    public reconnectInterval: number;
+    public preReady: boolean;
     public connectAttempts: number = 0;
     public connecting: boolean     = false;
+
+    private heartbeatInterval: any;
     private lastHeartbeatSent: number;
     private lastHeartbeatReceived: number;
     private ws: WebSocket;
-    public sessionID: boolean | string;
-    public reconnectInterval: number;
-    public preReady: boolean;
     private unsyncedGuilds: number;
     private lastHeartbeatAck: boolean;
     private guildSyncQueueLength: number;
-    private guildSyncQueue: Array<any>;
+    private guildSyncQueue: any[];
     private getAllUsersLength: number;
-    private getAllUsersQueue: Array<string>;
+    private getAllUsersQueue: string[];
     private getAllUsersCount: {};
     private seq: number;
-    private guildCreateTimeout: Timer | number;
-    private idleSince: number | null;
+    private guildCreateTimeout: any;
+    private idleSince?: number;
     private globalBucket: Bucket;
     private presenceUpdateBucket: Bucket;
     private presence: { game: string | null, status: Status };
     private _rPackets: number;
     private _rStartTime: number;
-    public discordServerTrace: any;
 
     constructor(public id: number, private kernel: Kernel) {
         super();
@@ -57,7 +63,7 @@ export default class Shard extends EventEmitter {
      * Tells the shard to connect
      */
     public connect() {
-        if (this.ws && this.ws.readyState != WebSocket.CLOSED) {
+        if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
             this.kernel.emit("error", new Error("Existing connection detected"), this.id);
 
             return;
@@ -82,7 +88,7 @@ export default class Shard extends EventEmitter {
 
         options = options || {reconnect: true};
         if (this.heartbeatInterval) {
-            clearInterval(<number> this.heartbeatInterval);
+            clearInterval(this.heartbeatInterval);
             this.heartbeatInterval = null;
         }
 
@@ -132,168 +138,16 @@ export default class Shard extends EventEmitter {
         }
     }
 
-    private reset() {
-        this.connecting            = false;
-        this.ready                 = false;
-        this.preReady              = false;
-        this.getAllUsersCount      = {};
-        this.getAllUsersQueue      = [];
-        this.getAllUsersLength     = 1;
-        this.guildSyncQueue        = [];
-        this.guildSyncQueueLength  = 1;
-        this.unsyncedGuilds        = 0;
-        this.lastHeartbeatAck      = true;
-        this.lastHeartbeatReceived = null;
-        this.lastHeartbeatSent     = null;
-        this.status                = "disconnected";
-    }
-
-    private hardReset() {
-        this.reset();
-        this.seq                  = 0;
-        this.sessionID            = null;
-        this.reconnectInterval    = 1000;
-        this.connectAttempts      = 0;
-        this.ws                   = null;
-        this.heartbeatInterval    = null;
-        this.guildCreateTimeout   = null;
-        this.idleSince            = null;
-        this.globalBucket         = new Bucket(120, 60000);
-        this.presenceUpdateBucket = new Bucket(5, 60000);
-        this.presence             = JSON.parse(JSON.stringify(this.kernel.presence)); // Fast copy
-    }
-
-    private async wsEvent(packet: { op: number, d: any, s: number, t: string }) {
-        const cls: any                = await import("./Event/" + this.getClassFromType(packet.t));
-        const instance: AbstractEvent = new cls(this.kernel, this);
-
-        packet.d = this.castFields(packet.d);
-
-        return await instance.doHandle(packet);
-    }
-
-    private getClassFromType(type: string): string {
-        return type.split("_").map(w => w[0].toUpperCase() + w.substr(1).toLowerCase()).join("") + "Event";
-    }
-
-    private castFields(data: any): any {
-        if (typeof data === 'object') {
-            if (Array.isArray(data)) {
-                return data.forEach(this.castFields.bind(this));
-            }
-
-            for (let field of ['id', 'owner_id', 'guild_id', 'afk_channel_id', 'embed_channel_id', 'last_message_id', 'application', 'widget_channel_id']) {
-                if (data[field] !== undefined && typeof data[field] === 'string') {
-                    data[field] = Long.fromString(data[field]);
-                }
-            }
-
-            if (data.roles && Array.isArray(data.roles) && data.roles.filter(x => typeof x !== 'string') === 0) {
-                data.roles = data.roles.forEach(x => Long.fromString(x));
-            }
-
-            if (data.joined_at) {
-                data.joined_at = new Date(data.joined_at);
-            }
-        }
-
-        return data;
-    }
-
-    private resume() {
-        this.sendWS(OPCodes.RESUME, {
-            token:      this.kernel.token,
-            session_id: this.sessionID,
-            seq:        this.seq,
-        });
-    }
-
-    private identify() {
-        var identify: any = {
-            token:           this.kernel.token,
-            v:               GATEWAY_VERSION,
-            compress:        true,
-            large_threshold: 250,
-            properties:      {
-                "os":      process.platform,
-                "browser": "Eris",
-                "device":  "Eris",
-            },
-        };
-        if (this.kernel.configuration.maxShards > 1) {
-            identify.shard = [this.id, this.kernel.configuration.maxShards];
-        }
-        if (this.presence.status) {
-            identify.presence = this.presence;
-        }
-
-        this.sendWS(OPCodes.IDENTIFY, identify);
-    }
-
-    private syncGuild(guildID) {
-        if (this.guildSyncQueueLength + 3 + guildID.length > 4081) { // 4096 - "{\"op\":12,\"d\":[]}".length + 1 for lazy comma offset
-            this.requestGuildSync(this.guildSyncQueue);
-            this.guildSyncQueue       = [guildID];
-            this.guildSyncQueueLength = 1 + guildID.length + 3;
-        } else if (this.ready) {
-            this.requestGuildSync([guildID]);
-        } else {
-            this.guildSyncQueue.push(guildID);
-            this.guildSyncQueueLength += guildID.length + 3;
-        }
-    }
-
-    private requestGuildSync(guildID) {
-        this.sendWS(OPCodes.SYNC_GUILD, guildID);
-    }
-
     public async createGuild(_guild): Promise<Guild> {
         this.kernel.guildShardMap[_guild.id] = this.id;
 
-        let guild = await this.kernel.guilds.add(_guild);
+        const guild = await this.kernel.guilds.add(_guild);
         if (this.kernel.configuration.getAllUsers && await guild.members.count() < guild.memberCount) {
-            //guild.fetchAllMembers();
+            // guild.fetchAllMembers();
             // @todo Fetch all members
         }
 
         return guild;
-    }
-
-    public restartGuildCreateTimeout() {
-        if (this.guildCreateTimeout) {
-            clearTimeout(<number> this.guildCreateTimeout);
-            this.guildCreateTimeout = null;
-        }
-        if (!this.ready) {
-            if (this.kernel.unavailableGuilds.size === 0 && this.unsyncedGuilds === 0) {
-                return this.checkReady();
-            }
-            this.guildCreateTimeout = setTimeout(() => {
-                this.checkReady();
-            }, this.kernel.configuration.guildCreateTimeout);
-        }
-    }
-
-    private getGuildMembers(guildID, chunkCount) {
-        this.getAllUsersCount[guildID] = chunkCount;
-        if (this.getAllUsersLength + 3 + guildID.length > 4048) { // 4096 - "{\"op\":8,\"d\":{\"guild_id\":[],\"query\":\"\",\"limit\":0}}".length + 1 for lazy comma offset
-            this.requestGuildMembers(this.getAllUsersQueue);
-            this.getAllUsersQueue  = [guildID];
-            this.getAllUsersLength = 1 + guildID.length + 3;
-        } else if (this.ready) {
-            this.requestGuildMembers([guildID]);
-        } else {
-            this.getAllUsersQueue.push(guildID);
-            this.getAllUsersLength += guildID.length + 3;
-        }
-    }
-
-    private requestGuildMembers(guildID: string | string[], query: string = "", limit: number = 0) {
-        this.sendWS(OPCodes.GET_GUILD_MEMBERS, {
-            guild_id: guildID,
-            query:    query,
-            limit:    limit,
-        });
     }
 
     public checkReady() {
@@ -324,7 +178,7 @@ export default class Shard extends EventEmitter {
         }
     }
 
-    initializeWS() {
+    public initializeWS() {
         this._rPackets    = 0;
         this._rStartTime  = Date.now();
         this.status       = "connecting";
@@ -345,7 +199,7 @@ export default class Shard extends EventEmitter {
         this.ws.onmessage = (m) => {
             this._rPackets++;
             try {
-                var packet = this.parse(m);
+                const packet = this.parse(m);
 
                 if (this.kernel.listeners("rawWS").length > 0) {
                     /**
@@ -399,7 +253,7 @@ export default class Shard extends EventEmitter {
                     case OPCodes.HELLO: {
                         if (packet.d.heartbeat_interval > 0) {
                             if (this.heartbeatInterval) {
-                                clearInterval(<number> this.heartbeatInterval);
+                                clearInterval(this.heartbeatInterval);
                             }
                             this.heartbeatInterval =
                                 setInterval(() => this.heartbeat(true), packet.d.heartbeat_interval);
@@ -435,10 +289,10 @@ export default class Shard extends EventEmitter {
             this.kernel.emit("error", event, this.id);
         };
         this.ws.onclose   = (event) => {
-            var err                         = !event.code || event.code === 1000 ? null : new Error(event.code +
+            let err                         = !event.code || event.code === 1000 ? null : new Error(event.code +
                                                                                                     ": " +
                                                                                                     event.reason);
-            var reconnect: string | boolean = "auto";
+            let reconnect: string | boolean = "auto";
             if (event.code) {
                 this.kernel.emit(
                     "warn",
@@ -482,7 +336,7 @@ export default class Shard extends EventEmitter {
                 this.kernel.emit("warn", event, this.id);
             }
             this.disconnect({
-                                reconnect: reconnect,
+                                reconnect,
                             }, err);
         };
 
@@ -495,18 +349,26 @@ export default class Shard extends EventEmitter {
         }, this.kernel.configuration.connectionTimeout);
     }
 
-    parse(message) {
-        var data = message.data;
+    public parse(message) {
+        let data = message.data;
         if (data instanceof ArrayBuffer) {
             data = new Buffer(data);
         } else if (Array.isArray(data)) { // Fragmented messages
             data = Buffer.concat(data); // Copyfull concat is slow, but no alternative
         }
 
-        return Erlpack.unpack(data);
+        if (Erlpack) {
+            return Erlpack.unpack(data);
+        } else {
+            try {
+                return JSON.parse(data);
+            } catch (err) {
+                throw new Error(err.message + "\n\n" + data);
+            }
+        }
     }
 
-    heartbeat(normal: boolean = false) {
+    public heartbeat(normal: boolean = false) {
         if (normal && !this.lastHeartbeatAck) {
             return this.disconnect(
                 {
@@ -520,15 +382,15 @@ export default class Shard extends EventEmitter {
         this.sendWS(OPCodes.HEARTBEAT, this.seq);
     }
 
-    sendWS(op, _data) {
+    public sendWS(op, _data) {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            var i       = 0;
-            var waitFor = 1;
-            var func    = () => {
+            let i       = 0;
+            let waitFor = 1;
+            const func  = () => {
                 if (++i >= waitFor && this.ws && this.ws.readyState === WebSocket.OPEN) {
-                    var data = Erlpack ? Erlpack.pack({op: op, d: _data}) : JSON.stringify({op: op, d: _data});
+                    const data = Erlpack ? Erlpack.pack({op, d: _data}) : JSON.stringify({op, d: _data});
                     this.ws.send(data);
-                    this.kernel.emit("debug", JSON.stringify({op: op, d: _data}), this.id);
+                    this.kernel.emit("debug", JSON.stringify({op, d: _data}), this.id);
                 }
             };
             if (op === OPCodes.STATUS_UPDATE) {
@@ -547,7 +409,7 @@ export default class Shard extends EventEmitter {
      * @arg {Number} [game.type] The type of game. 0 is default, 1 is streaming (Twitch only)
      * @arg {String} [game.url] Sets the url of the shard's active game
      */
-    editStatus(status, game) {
+    public editStatus(status, game) {
         if (game === undefined && typeof status === "object") {
             game   = status;
             status = undefined;
@@ -565,12 +427,182 @@ export default class Shard extends EventEmitter {
         // @todo Loop through guilds on the shard and set status for the member
     }
 
-    sendStatusUpdate() {
+    public sendStatusUpdate() {
         this.sendWS(OPCodes.STATUS_UPDATE, {
             afk:    false,
             game:   this.presence.game,
             since:  this.presence.status === "idle" ? Date.now() : 0,
             status: this.presence.status,
         });
+    }
+
+    public restartGuildCreateTimeout() {
+        if (this.guildCreateTimeout) {
+            clearTimeout(this.guildCreateTimeout);
+            this.guildCreateTimeout = null;
+        }
+        if (!this.ready) {
+            if (this.kernel.unavailableGuilds.size === 0 && this.unsyncedGuilds === 0) {
+                return this.checkReady();
+            }
+            this.guildCreateTimeout = setTimeout(() => {
+                this.checkReady();
+            }, this.kernel.configuration.guildCreateTimeout);
+        }
+    }
+
+    private getGuildMembers(guildID, chunkCount) {
+        this.getAllUsersCount[guildID] = chunkCount;
+        // 4096 - "{\"op\":8,\"d\":{\"guild_id\":[],\"query\":\"\",\"limit\":0}}".length + 1 for lazy comma offset
+        if (this.getAllUsersLength + 3 + guildID.length > 4048) {
+            this.requestGuildMembers(this.getAllUsersQueue);
+            this.getAllUsersQueue  = [guildID];
+            this.getAllUsersLength = 1 + guildID.length + 3;
+        } else if (this.ready) {
+            this.requestGuildMembers([guildID]);
+        } else {
+            this.getAllUsersQueue.push(guildID);
+            this.getAllUsersLength += guildID.length + 3;
+        }
+    }
+
+    private requestGuildMembers(guildID: string | string[], query: string = "", limit: number = 0) {
+        this.sendWS(OPCodes.GET_GUILD_MEMBERS, {
+            guild_id: guildID,
+            query,
+            limit,
+        });
+    }
+
+    private reset() {
+        this.connecting            = false;
+        this.ready                 = false;
+        this.preReady              = false;
+        this.getAllUsersCount      = {};
+        this.getAllUsersQueue      = [];
+        this.getAllUsersLength     = 1;
+        this.guildSyncQueue        = [];
+        this.guildSyncQueueLength  = 1;
+        this.unsyncedGuilds        = 0;
+        this.lastHeartbeatAck      = true;
+        this.lastHeartbeatReceived = null;
+        this.lastHeartbeatSent     = null;
+        this.status                = "disconnected";
+    }
+
+    private hardReset() {
+        this.reset();
+        this.seq                  = 0;
+        this.sessionID            = null;
+        this.reconnectInterval    = 1000;
+        this.connectAttempts      = 0;
+        this.ws                   = null;
+        this.heartbeatInterval    = null;
+        this.guildCreateTimeout   = null;
+        this.idleSince            = null;
+        this.globalBucket         = new Bucket(120, 60000);
+        this.presenceUpdateBucket = new Bucket(5, 60000);
+        this.presence             = JSON.parse(JSON.stringify(this.kernel.presence)); // Fast copy
+    }
+
+    private async wsEvent(packet: { op: number, d: any, s: number, t: string }) {
+        this.emit("rawWS", packet);
+
+        return new Promise((resolve: any, reject) => {
+            try {
+                const instance: AbstractEvent = new Events[this.getClassFromType(packet.t)](this.kernel, this);
+                packet.d                      = this.castFields(packet.d);
+
+                instance.doHandle(packet).then(resolve).catch(reject);
+            } catch (e) {
+                reject(e);
+            }
+        });
+    }
+
+    private getClassFromType(type: string): string {
+        return type.split("_").map((w) => w[0].toUpperCase() + w.substr(1).toLowerCase()).join("") + "Event";
+    }
+
+    private castFields(data: any): any {
+        if (typeof data === "object") {
+            if (Array.isArray(data)) {
+                return data.forEach(this.castFields.bind(this));
+            }
+
+            for (const field of
+                [
+                    "id",
+                    "owner_id",
+                    "guild_id",
+                    "afk_channel_id",
+                    "embed_channel_id",
+                    "last_message_id",
+                    "application",
+                    "widget_channel_id",
+                ]) {
+                if (data[field] !== undefined && typeof data[field] === "string") {
+                    data[field] = Long.fromString(data[field]);
+                }
+            }
+
+            if (data.roles && Array.isArray(data.roles) && data.roles.filter((x) => typeof x !== "string") === 0) {
+                data.roles = data.roles.forEach((x) => Long.fromString(x));
+            }
+
+            if (data.joined_at) {
+                data.joined_at = new Date(data.joined_at);
+            }
+        }
+
+        return data;
+    }
+
+    private resume() {
+        this.sendWS(OPCodes.RESUME, {
+            token:      this.kernel.token,
+            session_id: this.sessionID,
+            seq:        this.seq,
+        });
+    }
+
+    private identify() {
+        const identify: any = {
+            token:           this.kernel.token,
+            v:               GATEWAY_VERSION,
+            compress:        true,
+            large_threshold: 250,
+            properties:      {
+                os:      process.platform,
+                browser: "Eris",
+                device:  "Eris",
+            },
+        };
+        if (this.kernel.configuration.maxShards > 1) {
+            identify.shard = [this.id, this.kernel.configuration.maxShards];
+        }
+        if (this.presence.status) {
+            identify.presence = this.presence;
+        }
+
+        this.sendWS(OPCodes.IDENTIFY, identify);
+    }
+
+    private syncGuild(guildID) {
+        // 4096 - "{\"op\":12,\"d\":[]}".length + 1 for lazy comma offset
+        if (this.guildSyncQueueLength + 3 + guildID.length > 4081) {
+            this.requestGuildSync(this.guildSyncQueue);
+            this.guildSyncQueue       = [guildID];
+            this.guildSyncQueueLength = 1 + guildID.length + 3;
+        } else if (this.ready) {
+            this.requestGuildSync([guildID]);
+        } else {
+            this.guildSyncQueue.push(guildID);
+            this.guildSyncQueueLength += guildID.length + 3;
+        }
+    }
+
+    private requestGuildSync(guildID) {
+        this.sendWS(OPCodes.SYNC_GUILD, guildID);
     }
 }

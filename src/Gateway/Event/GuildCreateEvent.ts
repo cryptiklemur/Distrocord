@@ -1,5 +1,5 @@
-import AbstractEvent from "./AbstractEvent";
 import GuildPacket from "../Packet/GuildPacket";
+import AbstractEvent from "./AbstractEvent";
 
 /**
  * Event for GUILD_CREATE
@@ -19,7 +19,7 @@ export default class GuildCreateEvent extends AbstractEvent {
         }
 
         // If shard isn't ready, just remove from unavailable, and reset timeout
-        let removed = this.kernel.unavailableGuilds.remove(this.data);
+        const removed = this.kernel.unavailableGuilds.remove(this.data);
         if (!this.shard.ready) {
             this.shard.restartGuildCreateTimeout();
 
@@ -27,7 +27,7 @@ export default class GuildCreateEvent extends AbstractEvent {
         }
 
         // Otherwise, see if we removed from unavailable. If we did, emit available, otherwise, created.
-        let guild = this.shard.createGuild(this.data);
+        const guild = this.shard.createGuild(this.data);
         if (removed) {
             this.emit("guildAvailable", guild);
 

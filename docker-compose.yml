@@ -1,0 +1,18 @@
+version: '2'
+services:
+    mongo:
+        image: mongo
+        ports:
+            - "27107:27017"
+    app:
+        build: .
+        ports:
+            - "3050:3000"
+        links:
+            - mongo
+        environment:
+            - PORT=3000
+            - NODE_ENV=development
+            - NODE_CMD=dev
+        volumes:
+            - ".:/app"

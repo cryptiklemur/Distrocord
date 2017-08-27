@@ -16,7 +16,7 @@ export default class Collection<T> extends Map {
      * @arg {Boolean} replace Whether to replace an existing object with the same ID
      * @returns {Class} The existing or newly created object
      */
-    add(obj, extra?, replace = true): T {
+    public add(obj, extra?, replace = true): T {
         if (this.limit === 0) {
             return (obj instanceof this.baseObject) ? obj : new this.baseObject(obj, extra);
         }
@@ -25,7 +25,7 @@ export default class Collection<T> extends Map {
             throw new Error("Missing object identifier");
         }
 
-        let existing = this.get(obj.id);
+        const existing = this.get(obj.id);
         if (existing && !replace) {
             return existing;
         }
@@ -37,7 +37,7 @@ export default class Collection<T> extends Map {
         this.set(obj.id, obj);
 
         if (this.limit && this.size > this.limit) {
-            let iter = this.keys();
+            const iter = this.keys();
             while (this.size > this.limit) {
                 this.delete(iter.next().value);
             }
@@ -51,8 +51,8 @@ export default class Collection<T> extends Map {
      * @arg {function} func A function that takes an object and returns true if it matches
      * @returns {Class?} The first matching object, or undefined if no match
      */
-    find(func): T|undefined {
-        for (let item of this.values()) {
+    public find(func): T|undefined {
+        for (const item of this.values()) {
             if (func(item)) {
                 return item;
             }
@@ -64,7 +64,7 @@ export default class Collection<T> extends Map {
      * Get a random object from the Collection
      * @returns {Class?} The random object, or undefined if there is no match
      */
-    random(): T | undefined {
+    public random(): T | undefined {
         if (!this.size) {
             return undefined;
         }
@@ -76,9 +76,9 @@ export default class Collection<T> extends Map {
      * @arg {function} func A function that takes an object and returns true if it matches
      * @returns {Array<Class>} An array containing all the objects that matched
      */
-    filter(func): T[] {
-        let arr = [];
-        for (let item of this.values()) {
+    public filter(func): T[] {
+        const arr = [];
+        for (const item of this.values()) {
             if (func(item)) {
                 arr.push(item);
             }
@@ -91,9 +91,9 @@ export default class Collection<T> extends Map {
      * @arg {function} func A function that takes an object and returns something
      * @returns {Array} An array containing the results
      */
-    map(func): any {
-        let arr = [];
-        for (let item of this.values()) {
+    public map(func): any {
+        const arr = [];
+        for (const item of this.values()) {
             arr.push(func(item));
         }
         return arr;
@@ -107,12 +107,12 @@ export default class Collection<T> extends Map {
      * @arg {Boolean} replace Whether to replace an existing object with the same ID
      * @returns {Class} The updated object
      */
-    update(obj, extra, replace): T {
+    public update(obj, extra, replace): T {
         if (!obj.id && obj.id !== 0) {
             throw new Error("Missing object identifier");
         }
 
-        let item = this.get(obj.id);
+        const item = this.get(obj.id);
         if (!item) {
             return this.add(obj, extra, replace);
         }
@@ -128,8 +128,8 @@ export default class Collection<T> extends Map {
      * @arg {String} obj.identifier The ID of the object
      * @returns {Class?} The removed object, or null if nothing was removed
      */
-    remove(obj): T {
-        let item = this.get(obj.id);
+    public remove(obj): T {
+        const item = this.get(obj.id);
         if (!item) {
             return null;
         }
@@ -139,7 +139,7 @@ export default class Collection<T> extends Map {
         return item;
     }
 
-    toString(): string {
+    public toString(): string {
         return `[Collection<${this.baseObject.name}>]`;
     }
 }

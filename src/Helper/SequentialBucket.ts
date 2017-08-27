@@ -1,19 +1,11 @@
-/**
- * Ratelimit requests and release in sequence
- *
- * @prop {Number} limit How many tokens the bucket can consume in the current interval
- * @prop {Number} remaining How many tokens the bucket has left in the current interval
- * @prop {Number} reset Timestamp of next reset
- * @prop {Boolean} processing Whether the queue is being processed
- */
 export default class SequentialBucket {
     private limit: number;
     private remaining: number;
     private resetInterval: number           = 0;
     private reset: number                   = 0;
-    private processing: boolean | number    = false;
+    private processing?: any;
     private latencyRef: { latency: number } = {latency: 0};
-    private queue: Array<any>               = [];
+    private _queue: any[]              = [];
     private last: number;
 
     /**
@@ -35,20 +27,20 @@ export default class SequentialBucket {
      * @arg {Function} func A function to call when a token can be consumed. The function will be passed a callback
      *     argument, which must be called to allow the bucket to continue to work
      */
-    queue(func, short) {
+    public queue(func, short) {
         if (short) {
-            this.queue.unshift(func);
+            this._queue.unshift(func);
         } else {
-            this.queue.push(func);
+            this._queue.push(func);
         }
         this.check();
     }
 
-    check(override?) {
+    public check(override?) {
         if (this.queue.length === 0) {
             if (this.processing) {
                 clearTimeout(this.processing);
-                this.processing = false;
+                this.processing = undefined;
             }
             return;
         }
@@ -56,7 +48,7 @@ export default class SequentialBucket {
             return;
         }
 
-        let now = Date.now();
+        const now = Date.now();
         if (!this.reset) {
             this.reset     = now - this.latencyRef.latency;
             this.remaining = this.limit;
@@ -67,18 +59,25 @@ export default class SequentialBucket {
         this.last = now;
         if (this.remaining <= 0) {
             this.processing = setTimeout(() => {
-                this.processing = false;
+                this.processing = undefined;
                 this.check(true);
             }, Math.max(0, this.reset || 0 - now) + this.latencyRef.latency);
             return;
         }
+
         --this.remaining;
         this.processing = true;
-        this.queue.shift()(() => {
+
+        const func = this._queue.shift();
+        if (!func) {
+            return this.processing = undefined;
+        }
+
+        func(() => {
             if (this.queue.length > 0) {
                 this.check(true);
             } else {
-                this.processing = false;
+                this.processing = undefined;
             }
         });
     }

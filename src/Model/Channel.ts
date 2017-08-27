@@ -1,9 +1,9 @@
 import {arrayProp, instanceMethod, InstanceType, prop, Ref} from "typegoose";
-import Guild from "./Guild";
+import Kernel from "../Kernel";
 import AbstractModel from "./AbstractModel";
+import Guild from "./Guild";
 import Message from "./Message";
 import PermissionOverwrite from "./PermissionOverwrite";
-import Kernel from "../Kernel";
 
 export type ChannelType = 0 | 2;
 
@@ -12,15 +12,15 @@ export default class Channel extends AbstractModel {
     public guild?: Ref<Guild>;
 
     @arrayProp({itemsRef: PermissionOverwrite})
-    public roles: Ref<PermissionOverwrite>[];
+    public roles: Array<Ref<PermissionOverwrite>>;
 
-    @prop()
+    @prop({required: true})
     public type: ChannelType;
 
-    @prop()
+    @prop({required: true})
     public name: string;
 
-    @prop()
+    @prop({required: true})
     public position: number;
 
     @prop()
@@ -32,10 +32,10 @@ export default class Channel extends AbstractModel {
     @prop()
     public userLimit?: number;
 
-    @prop()
+    @prop({required: true, default: false})
     public nsfw: boolean;
 
-    public messages: Array<Message>;
+    public messages: Message[];
 
     @instanceMethod
     public get mention(this: InstanceType<Channel>) {
@@ -43,7 +43,7 @@ export default class Channel extends AbstractModel {
             return;
         }
 
-        return '<#' + this.identifier + '>';
+        return "<#" + this.identifier + ">";
     }
 
     @instanceMethod

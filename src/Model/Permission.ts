@@ -1,13 +1,13 @@
 import {instanceMethod, InstanceType, prop} from "typegoose";
 import {Permissions} from "../Config/Constants";
-import AbstractModel from "./AbstractModel";
 import Kernel from "../Kernel";
+import AbstractModel from "./AbstractModel";
 
 export default class Permission extends AbstractModel {
-    @prop()
+    @prop({required: true})
     public allow: number;
 
-    @prop({default: 0})
+    @prop({required: true, default: 0})
     public deny: number;
 
     private _json: any;
@@ -15,7 +15,7 @@ export default class Permission extends AbstractModel {
     get json(): any {
         if (!this._json) {
             this._json = {};
-            for (var perm of Object.keys(Permissions)) {
+            for (const perm of Object.keys(Permissions)) {
                 if (!perm.startsWith("all")) {
                     if (this.allow & Permissions[perm]) {
                         this._json[perm] = true;
@@ -35,7 +35,7 @@ export default class Permission extends AbstractModel {
      * @returns {Boolean} Whether the permission allows the specified permission
      */
     @instanceMethod
-    has(this: InstanceType<Permission>, permission: string): boolean {
+    public has(this: InstanceType<Permission>, permission: string): boolean {
         return !!(this.allow & Permissions[permission]);
     }
 

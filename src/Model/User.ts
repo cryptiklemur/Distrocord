@@ -1,8 +1,6 @@
 import {instanceMethod, InstanceType, prop} from "typegoose";
-import AbstractModel from "./AbstractModel";
 import Kernel from "../Kernel";
-
-
+import AbstractModel from "./AbstractModel";
 
 export type Status = "online" | "offline" | "idle" | "invisible";
 
@@ -22,25 +20,25 @@ export default class User extends AbstractModel {
     /**
      * @type {Status} Online status of the user
      */
-    @prop({index: true})
+    @prop({index: true, required: true})
     public status: Status;
 
     /**
      * @type {string|null} Game the user is playing
      */
     @prop()
-    public game?: string | null;
+    public game?: string;
 
     /**
      * @type {string|null} The hash of the user's avatar, or null if no avatar
      */
     @prop()
-    public avatar?: string | null;
+    public avatar?: string;
 
     /**
      * @type {boolean} Whether the user is an OAuth bot or not
      */
-    @prop({index: true})
+    @prop({index: true, required: true, default: false})
     public bot: boolean;
 
     @instanceMethod

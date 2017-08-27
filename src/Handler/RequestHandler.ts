@@ -8,16 +8,18 @@ import Kernel from "../Kernel";
 
 const version: any = require("../../package.json").version;
 
+interface LatencyRef { latency: number; raw: number[]; total: number; timeOffset: number; lastTimeOffsetCheck: number; }
+
 /**
  * Handles API requests
  */
 export default class RequestHandler {
     private kernel: Kernel;
-    private userAgent: string      = `DistroDiscord (https://github.com/DiscordBot/DistroDiscord, ${version})`;
-    private ratelimits: any        = {};
-    private latencyRef: { latency: number, raw: number[], total: number, timeOffset: number, lastTimeOffsetCheck: number };
-    private globalBlock: boolean   = false;
-    private readyQueue: Array<any> = [];
+    private userAgent: string    = `DistroDiscord (https://github.com/DiscordBot/DistroDiscord, ${version})`;
+    private ratelimits: any      = {};
+    private latencyRef: LatencyRef;
+    private globalBlock: boolean = false;
+    private readyQueue: any[]    = [];
 
     constructor(kernel: Kernel, forceQueueing: boolean = false) {
         this.kernel      = kernel;
@@ -37,15 +39,15 @@ export default class RequestHandler {
         }
     }
 
-    globalUnblock() {
+    public globalUnblock() {
         this.globalBlock = false;
         while (this.readyQueue.length > 0) {
             this.readyQueue.shift()();
         }
     }
 
-    routefy(url) {
-        return url.replace(/\/([a-z-]+)\/(?:[0-9]{17,})+?/g, function (match, p) {
+    public routefy(url) {
+        return url.replace(/\/([a-z-]+)\/(?:[0-9]{17,})+?/g, (match, p) => {
             return p === "channels" || p === "guilds" ? match : `/${p}/:id`;
         }).replace(/\/reactions\/.+/g, "/reactions/:identifier");
     }
@@ -62,7 +64,7 @@ export default class RequestHandler {
      * @arg {String} file.name What to name the file
      * @returns {Promise<Object>} Resolves with the returned JSON data
      */
-    request(
+    public request(
         method: string,
         url: string,
         auth?: boolean,
@@ -71,13 +73,13 @@ export default class RequestHandler {
         _route?: string,
         short?,
     ) {
-        let route: string = _route || this.routefy(url);
+        const route: string = _route || this.routefy(url);
 
         return new Promise<any>((resolve, reject) => {
             let attempts: number = 0;
 
-            let actualCall = (cb) => {
-                let headers: any = {
+            const actualCall = (cb) => {
+                const headers: any = {
                     "User-Agent":      this.userAgent,
                     "Accept-Encoding": "gzip,deflate",
                 };
@@ -99,7 +101,7 @@ export default class RequestHandler {
                         if (Array.isArray(file)) {
                             data                    = new MultipartData();
                             headers["Content-Type"] = "multipart/form-data; boundary=" + data.boundary;
-                            file.forEach(function (f) {
+                            file.forEach((f) => {
                                 if (!f.file) {
                                     return;
                                 }
@@ -121,12 +123,13 @@ export default class RequestHandler {
                             throw new Error("Invalid file object");
                         }
                     } else if (body) {
-                        if (method === "GET" || (method === "PUT" && url.includes("/bans/"))) { // TODO remove PUT case when devs fix
+                        // TODO remove PUT case when devs fix
+                        if (method === "GET" || (method === "PUT" && url.includes("/bans/"))) {
                             let qs = "";
-                            Object.keys(body).forEach(function (key) {
-                                if (body[key] != undefined) {
+                            Object.keys(body).forEach((key) => {
+                                if (body[key] !== undefined) {
                                     if (Array.isArray(body[key])) {
-                                        body[key].forEach(function (val) {
+                                        body[key].forEach((val) => {
                                             qs += `&${encodeURIComponent(key)}=${encodeURIComponent(val)}`;
                                         });
                                     } else {
@@ -146,14 +149,14 @@ export default class RequestHandler {
                     return;
                 }
 
-                let req = HTTPS.request(
+                const req = HTTPS.request(
                     {
-                        method:  method,
+                        method,
                         // host: ~url.indexOf("154461004984614912") ? "requestb.in" : "discordapp.com",
                         // path: ~url.indexOf("154461004984614912") ? "/1jje57y1" : this.baseURL + url,
-                        host:    "discordapp.com",
-                        path:    Endpoints.BASE_URL + url,
-                        headers: headers,
+                        host: "discordapp.com",
+                        path: Endpoints.BASE_URL + url,
+                        headers,
                     },
                 );
 
@@ -183,8 +186,8 @@ export default class RequestHandler {
                     this.latencyRef.latency = ~~(this.latencyRef.total / this.latencyRef.raw.push(latency));
 
                     if (this.latencyRef.lastTimeOffsetCheck < Date.now() - 60000) {
-                        let timeOffset = Date.parse(resp.headers["date"]) -
-                                         (this.latencyRef.lastTimeOffsetCheck = Date.now());
+                        const timeOffset = Date.parse(resp.headers["date"]) -
+                                           (this.latencyRef.lastTimeOffsetCheck = Date.now());
                         if (~~(this.latencyRef.timeOffset) -
                             this.latencyRef.latency >=
                             1000 &&
@@ -193,7 +196,10 @@ export default class RequestHandler {
                             1000) {
                             this.kernel.emit(
                                 "error",
-                                new Error(`Your clock is ${this.latencyRef.timeOffset}ms behind Discord's server clock. Please check your connection and system time.`),
+                                new Error(
+                                    `Your clock is ${this.latencyRef.timeOffset}ms behind Discord's server clock. ` +
+                                    `Please check your connection and system time.`,
+                                ),
                             );
                         }
                         this.latencyRef.timeOffset = timeOffset;
@@ -213,7 +219,7 @@ export default class RequestHandler {
                     _respStream.on("data", (str) => {
                         response += str;
                     }).once("end", () => {
-                        let now = Date.now();
+                        const now = Date.now();
 
                         if (resp.headers["x-ratelimit-limit"]) {
                             this.ratelimits[route].limit = +resp.headers["x-ratelimit-limit"];
@@ -235,7 +241,8 @@ export default class RequestHandler {
                             this.ratelimits[route].reset =
                                 Math.max(
                                     +resp.headers["x-ratelimit-reset"] *
-                                    (route.endsWith("/reactions/:identifier") ? 250 : 1000) + this.latencyRef.timeOffset, now);
+                                    (route.endsWith("/reactions/:identifier") ? 250 : 1000) +
+                                    this.latencyRef.timeOffset, now);
                         } else {
                             this.ratelimits[route].reset = now;
                         }
@@ -243,9 +250,10 @@ export default class RequestHandler {
                         if (resp.statusCode !== 429) {
                             this.kernel.emit(
                                 "debug",
-                                `${body &&
-                                   body.content} ${now} ${route} ${resp.statusCode}: ${latency}ms (${this.latencyRef.latency}ms avg) | ${this.ratelimits[route].remaining}/${this.ratelimits[route].limit} left | Reset ${this.ratelimits[route].reset} (${this.ratelimits[route].reset -
-                                                                                                                                                                                                                                                           now}ms left)`,
+                                `${body && body.content} ${now} ${route} ${resp.statusCode}: ${latency}ms ` +
+                                `(${this.latencyRef.latency}ms avg) | ${this.ratelimits[route].remaining}/` +
+                                `${this.ratelimits[route].limit} left | Reset ${this.ratelimits[route].reset} ` +
+                                `(${this.ratelimits[route].reset - now}ms left)`,
                             );
                         }
 
@@ -253,11 +261,12 @@ export default class RequestHandler {
                             if (resp.statusCode === 429) {
                                 this.kernel.emit(
                                     "warn",
-                                    `${resp.headers["x-ratelimit-global"]
-                                        ? "Global"
-                                        : "Unexpected"} 429 (╯°□°）╯︵ ┻━┻: ${response}\n${body &&
-                                                                                         body.content} ${now} ${route} ${resp.statusCode}: ${latency}ms (${this.latencyRef.latency}ms avg) | ${this.ratelimits[route].remaining}/${this.ratelimits[route].limit} left | Reset ${this.ratelimits[route].reset} (${this.ratelimits[route].reset -
-                                                                                                                                                                                                                                                                                                                 now}ms left)`,
+                                    `${resp.headers["x-ratelimit-global"] ? "Global" : "Unexpected"} ` +
+                                    `429 (╯°□°）╯︵ ┻━┻: ${response}\n${body && body.content} ${now} ${route} ` +
+                                    `${resp.statusCode}: ${latency}ms (${this.latencyRef.latency}ms avg) | ` +
+                                    `${this.ratelimits[route].remaining}/${this.ratelimits[route].limit} left | ` +
+                                    `Reset ${this.ratelimits[route].reset} (${this.ratelimits[route].reset -
+                                                                              now}ms left)`,
                                 );
                                 if (resp.headers["retry-after"]) {
                                     setTimeout(() => {
@@ -284,13 +293,13 @@ export default class RequestHandler {
                                 return cb();
                             }
                             cb();
-                            let err: any = new Error(`${resp.statusCode} ${resp.statusMessage} on ${method} ${url}\n\n${response.substring(
-                                0,
-                                200,
-                            )}`);
-                            err.resp     = resp;
-                            err.response = response;
-                            err.req      = req;
+                            const err: any = new Error(
+                                `${resp.statusCode} ${resp.statusMessage} on ${method} ${url}\n\n` +
+                                response.substring(0, 200),
+                            );
+                            err.resp       = resp;
+                            err.response   = response;
+                            err.req        = req;
                             reject(err);
                             return;
                         }
@@ -310,13 +319,13 @@ export default class RequestHandler {
                     });
                 });
 
-                req.setTimeout(15000, function () {
+                req.setTimeout(15000, () => {
                     reqError = new Error(`Request timed out (>15000ms) on ${method} ${url}`);
                     req.abort();
                 });
 
                 if (Array.isArray(data)) {
-                    for (let chunk of data) {
+                    for (const chunk of data) {
                         req.write(chunk);
                     }
                     req.end();

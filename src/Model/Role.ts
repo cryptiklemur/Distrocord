@@ -1,37 +1,33 @@
-import Kernel from "../Kernel";
 import {instanceMethod, InstanceType, prop, Ref} from "typegoose";
-import User from "./User";
-import Guild from "./Guild";
+import Kernel from "../Kernel";
 import AbstractModel from "./AbstractModel";
+import Guild from "./Guild";
 import Permission from "./Permission";
 
 export default class Role extends AbstractModel {
-    @prop()
+    @prop({required: true})
     public name: string;
 
-    @prop()
+    @prop({required: true})
     public mentionable: boolean;
 
-    @prop()
+    @prop({required: true})
     public managed: boolean;
 
-    @prop()
+    @prop({required: true})
     public hoisted: boolean;
 
-    @prop()
+    @prop({required: true})
     public color: number;
 
-    @prop()
+    @prop({required: true})
     public position: number;
 
-    @prop({ref: User})
-    public user: Ref<User>;
-
-    @prop({ref: Guild})
+    @prop({ref: {name: "Guild"}, required: true})
     public guild: Ref<Guild>;
 
-    @prop()
-    public permission: Permission;
+    @prop({ref: Permission})
+    public permissions: Permission;
 
     @instanceMethod
     public get mention(this: InstanceType<Role>) {

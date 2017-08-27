@@ -13,7 +13,7 @@ export default class Bucket {
     private lastReset: number = 0;
     private tokens: number    = 0;
     private lastSend: number  = 0;
-    private _queue: Array<any> = [];
+    private _queue: any[] = [];
     private timeout: Timer | null;
 
     /**
@@ -35,12 +35,12 @@ export default class Bucket {
      * Queue something in the Bucket
      * @arg {Function} func A callback to call when a token can be consumed
      */
-    queue(func: Function) {
+    public queue(func: () => void) {
         this._queue.push(func);
         this.check();
     }
 
-    check() {
+    public check() {
         if (this.timeout || this._queue.length === 0) {
             return;
         }
@@ -52,7 +52,7 @@ export default class Bucket {
         let val;
         while (this._queue.length > 0 && this.tokens < this.tokenLimit) {
             this.tokens++;
-            let item = this._queue.shift();
+            const item = this._queue.shift();
             val      = this.latencyRef.latency - Date.now() + this.lastSend;
             if (this.latencyRef.latency === 0 || val <= 0) {
                 item();
@@ -71,7 +71,10 @@ export default class Bucket {
                 },
                 this.tokens < this.tokenLimit
                     ? this.latencyRef.latency
-                    : Math.max(0, this.lastReset + this.interval + this.tokenLimit * this.latencyRef.latency - Date.now()),
+                    : Math.max(
+                        0,
+                        this.lastReset + this.interval + this.tokenLimit * this.latencyRef.latency - Date.now(),
+                    ),
             );
         }
     }

@@ -3,14 +3,14 @@ export const DefaultAvatarHashes = [
     "322c936a8c8be1b803cd94861bdfa868",
     "dd4dbc0016779df1378e7812eabaa04d",
     "0e291f67c9274a1abdddeb3fd919cbaa",
-    "1cbd08c76f8af6dddce02c5138971129"
+    "1cbd08c76f8af6dddce02c5138971129",
 ];
 
 export const ImageFormats = [
     "jpg",
     "png",
     "webp",
-    "gif"
+    "gif",
 ];
 
 export const ImageSizes = [
@@ -18,7 +18,7 @@ export const ImageSizes = [
     256,
     512,
     1024,
-    2048
+    2048,
 ];
 
 export const GatewayOPCodes = {
@@ -35,7 +35,7 @@ export const GatewayOPCodes = {
     HELLO:              10,
     HEARTBEAT_ACK:      11,
     SYNC_GUILD:         12,
-    SYNC_CALL:          13
+    SYNC_CALL:          13,
 };
 
 export const GATEWAY_VERSION = 6;
@@ -72,7 +72,7 @@ export const Permissions = {
     all:                 0b1111111111101111111110011111111,
     allGuild:            0b1111100000000000000000010111111,
     allText:             0b0110000000001111111110001010001,
-    allVoice:            0b0110011111100000000000000010001
+    allVoice:            0b0110011111100000000000000010001,
 };
 
 export const AuditLogActions = {
@@ -108,5 +108,5 @@ export const AuditLogActions = {
     EMOJI_UPDATE: 61,
     EMOJI_DELETE: 62,
 
-    MESSAGE_DELETE: 72
+    MESSAGE_DELETE: 72,
 };

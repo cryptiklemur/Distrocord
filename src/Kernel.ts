@@ -8,6 +8,7 @@ import Collection from "./Helper/Collection";
 import Manager from "./Manager/Manager";
 import Channel from "./Model/Channel";
 
+import {Long} from "bson";
 import Guild from "./Model/Guild";
 import {default as User, Status} from "./Model/User";
 
@@ -19,8 +20,8 @@ export default class Kernel extends EventEmitter {
     public shardHandler: ShardHandler;
     public presence: { game: any; status: Status };
     public guildShardMap: { [id: string]: number }     = {};
-    public channelGuildMap: { [id: string]: number }   = {};
-    public privateChannelMap: { [id: string]: number } = {};
+    public channelGuildMap: { [id: string]: Long }   = {};
+    public privateChannelMap: { [id: string]: Long } = {};
     public unavailableGuilds: Collection<any>;
 
     public user: User;
@@ -32,9 +33,7 @@ export default class Kernel extends EventEmitter {
     private startTime: number   = 0;
     private lastConnect: number = 0;
 
-    //private shards;
-
-    constructor(options) {
+    constructor(options: Configuration) {
         super();
 
         this.configuration = new Configuration(options);
@@ -69,7 +68,7 @@ export default class Kernel extends EventEmitter {
      * Get the Discord gateway URL
      * @returns {Promise<String>} Resolves with the gateway URL
      */
-    getGateway() {
+    public getGateway() {
         return this.requestHandler.request("GET", Endpoints.GATEWAY);
     }
 
@@ -77,7 +76,7 @@ export default class Kernel extends EventEmitter {
      * Get the Discord gateway URL along with bot metadata
      * @returns {Promise<Object>} Resolves with the gateway data
      */
-    getBotGateway() {
+    public getBotGateway() {
         if (this.token.indexOf("Bot ") !== 0) {
             this.token = "Bot " + this.token;
         }
@@ -89,8 +88,14 @@ export default class Kernel extends EventEmitter {
      * Tells all shards to connect.
      * @returns {Promise} Resolves when all shards are initialized
      */
-    connect() {
-        return this.getGateway().then((data) => {
+    public connect() {
+        return this.getBotGateway().then((data) => {
+            this.configuration.maxShards = data.shards;
+
+            if (this.configuration.lastShard === undefined) {
+                this.configuration.lastShard = data.shards - 1;
+            }
+
             if (!data.url) {
                 return Promise.reject(new Error("Invalid response from gateway REST call"));
             }
@@ -100,8 +105,9 @@ export default class Kernel extends EventEmitter {
             if (!data.url.endsWith("/")) {
                 data.url += "/";
             }
-            this.gatewayURL = data.url + "?v=" + Constants.GATEWAY_VERSION + "&encoding=etf";
-            for (let i = this.configuration.firstShard; i <= this.configuration.lastShard; ++i) {
+            this.gatewayURL = `${data.url}?v=${Constants.GATEWAY_VERSION}&encoding=etf`;
+
+            for (let i = this.configuration.firstShard; i <= this.configuration.lastShard; i++) {
                 this.shardHandler.spawn(i);
             }
         }).catch((err) => {
