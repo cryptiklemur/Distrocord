@@ -5,11 +5,6 @@ import Permission from "./Permission";
 import {fragment, index, prop, SchemaFragment} from "mongot";
 
 @fragment
-@index('identifier')
-@index('name')
-@index('mentionable')
-@index('hoisted')
-@index('position')
 export default class Role extends SchemaFragment implements ModelInterface {
     @prop
     public identifier: string;

@@ -5,8 +5,6 @@ import ModelInterface from "./ModelInterface";
 import User from "./User";
 
 @fragment
-@index("user")
-@index("joinedAt")
 export default class Member extends User implements ModelInterface {
     @prop
     public user: string;
