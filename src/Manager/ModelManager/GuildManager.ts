@@ -1,9 +1,9 @@
-import GuildPacket from "../Gateway/Packet/GuildPacket";
-import Channel, {ChannelModel} from "../Model/Channel";
-import Guild from "../Model/Guild";
-import Member, {MemberModel} from "../Model/Member";
-import ModelInterface from "../Model/ModelInterface";
-import Role, {RoleModel} from "../Model/Role";
+import GuildPacket from "../../Gateway/Packet/GuildPacket";
+import Channel, {ChannelModel} from "../../Model/Channel";
+import Guild from "../../Model/Guild";
+import Member, {MemberModel} from "../../Model/Member";
+import ModelInterface from "../../Model/ModelInterface";
+import Role, {RoleModel} from "../../Model/Role";
 import AbstractModelManager from "./AbstractModelManager";
 
 export default class GuildManager extends AbstractModelManager<Guild> {

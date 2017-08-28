@@ -1,7 +1,7 @@
-import MemberPacket from "../Gateway/Packet/MemberPacket";
-import Guild from "../Model/Guild";
-import Member from "../Model/Member";
-import ModelInterface from "../Model/ModelInterface";
+import MemberPacket from "../../Gateway/Packet/MemberPacket";
+import Guild from "../../Model/Guild";
+import Member from "../../Model/Member";
+import ModelInterface from "../../Model/ModelInterface";
 import AbstractModelManager from "./AbstractModelManager";
 
 export default class MemberManager extends AbstractModelManager<Member> {

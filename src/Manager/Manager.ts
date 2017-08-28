@@ -2,7 +2,7 @@ import {Long} from "bson";
 import {InstanceType, ModelType} from "typegoose";
 import Kernel from "../Kernel";
 import ModelInterface from "../Model/ModelInterface";
-import AbstractModelManager from "./AbstractModelManager";
+import AbstractModelManager from "./ModelManager/AbstractModelManager";
 
 export default class Manager<T extends ModelInterface> {
     constructor(

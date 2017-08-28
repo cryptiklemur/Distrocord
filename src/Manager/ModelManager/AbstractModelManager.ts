@@ -1,5 +1,5 @@
-import Kernel from "../Kernel";
-import ModelInterface from "../Model/ModelInterface";
+import Kernel from "../../Kernel";
+import ModelInterface from "../../Model/ModelInterface";
 
 export default abstract class AbstractModelManager<T extends ModelInterface> {
     constructor(protected kernel: Kernel) {

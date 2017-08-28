@@ -1,6 +1,7 @@
 import {Long} from "bson";
 import {EventEmitter} from "eventemitter3";
 import * as mongoose from "mongoose";
+import {Repository} from "mongot";
 import * as winston from "winston";
 import {LoggerInstance} from "winston";
 import Configuration from "./Config/Configuration";
@@ -9,19 +10,19 @@ import * as Endpoints from "./Config/Endpoints";
 import RequestHandler from "./Handler/RequestHandler";
 import ShardHandler from "./Handler/ShardHandler";
 import Collection from "./Helper/Collection";
-import AbstractModelManager from "./Manager/AbstractModelManager";
-import ChannelManager from "./Manager/ChannelManager";
-import GuildManager from "./Manager/GuildManager";
 import Manager from "./Manager/Manager";
-import MemberManager from "./Manager/MemberManager";
-import PermissionManager from "./Manager/PermissionManager";
-import PermissionOverwriteManager from "./Manager/PermissionOverwriteManager";
-import RoleManager from "./Manager/RoleManager";
-import UserManager from "./Manager/UserManager";
-import Channel, {ChannelModel} from "./Model/Channel";
-import Guild, {GuildModel} from "./Model/Guild";
+import AbstractModelManager from "./Manager/ModelManager/AbstractModelManager";
+import ChannelManager from "./Manager/ModelManager/ChannelManager";
+import GuildManager from "./Manager/ModelManager/GuildManager";
+import MemberManager from "./Manager/ModelManager/MemberManager";
+import PermissionManager from "./Manager/ModelManager/PermissionManager";
+import PermissionOverwriteManager from "./Manager/ModelManager/PermissionOverwriteManager";
+import RoleManager from "./Manager/ModelManager/RoleManager";
+import UserManager from "./Manager/ModelManager/UserManager";
+import Channel from "./Model/Channel";
+import Guild from "./Model/Guild";
 import ModelInterface from "./Model/ModelInterface";
-import {default as User, Status, UserModel} from "./Model/User";
+import User, {Status} from "./Model/User";
 
 // Set global promises
 (mongoose as any).Promise = global.Promise;
@@ -92,9 +93,21 @@ export default class Kernel extends EventEmitter {
         this.modelManagers.role                = new RoleManager(this);
         this.modelManagers.user                = new UserManager(this);
 
-        this.guilds          = new Manager<Guild>(this, GuildModel, this.modelManagers.guild);
-        this.users           = new Manager<User>(this, UserModel, this.modelManagers.user);
-        this.privateChannels = new Manager<Channel>(this, ChannelModel, this.modelManagers.chanel);
+        this.guilds          = new Manager<Guild>(
+            this,
+            new Repository(this.configuration.mongo.guildRepo),
+            this.modelManagers.guild,
+        );
+        this.users           = new Manager<User>(
+            this,
+            new Repository(this.configuration.mongo.userRepo),
+            this.modelManagers.user
+        );
+        this.privateChannels = new Manager<Channel>(
+            this,
+            new Repository(this.configuration.mongo.channelRepo),
+            this.modelManagers.chanel
+        );
 
         this.presence = {
             game:   null,

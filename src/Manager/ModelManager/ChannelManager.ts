@@ -1,11 +1,11 @@
-import ChannelPacket from "../Gateway/Packet/ChannelPacket";
-import Collection from "../Helper/Collection";
-import Channel, {ChannelType} from "../Model/Channel";
-import Guild from "../Model/Guild";
-import Message from "../Model/Message";
-import ModelInterface from "../Model/ModelInterface";
-import PermissionOverwrite from "../Model/PermissionOverwrite";
-import User from "../Model/User";
+import ChannelPacket from "../../Gateway/Packet/ChannelPacket";
+import Collection from "../../Helper/Collection";
+import Channel, {ChannelType} from "../../Model/Channel";
+import Guild from "../../Model/Guild";
+import Message from "../../Model/Message";
+import ModelInterface from "../../Model/ModelInterface";
+import PermissionOverwrite from "../../Model/PermissionOverwrite";
+import User from "../../Model/User";
 import AbstractModelManager from "./AbstractModelManager";
 
 export default class ChannelManager extends AbstractModelManager<Channel> {

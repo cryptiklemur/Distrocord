@@ -1,6 +1,6 @@
 import Shard from "../Gateway/Shard";
 import Kernel from "../Kernel";
-import Channel from "./Channel";
+import GuildChannel from "./Channel";
 import Member from "./Member";
 import ModelInterface from "./ModelInterface";
 import Role from "./Role";
@@ -10,10 +10,6 @@ import {document, prop, SchemaDocument, SchemaFragmentArray} from "mongot";
 export default class Guild extends SchemaDocument implements ModelInterface {
     @prop
     public identifier: string;
-
-    public get createdAt(): Date {
-        return new Date((+this.identifier / 4194304) + 1420070400000);
-    }
 
     /**
      * @type {string} The name of the server
@@ -75,11 +71,16 @@ export default class Guild extends SchemaDocument implements ModelInterface {
     @prop(Member)
     public members: SchemaFragmentArray<Member>;
 
-    @prop(Channel)
-    public channels: SchemaFragmentArray<Channel>;
+    @prop(GuildChannel)
+    public channels: SchemaFragmentArray<GuildChannel>;
 
     @prop
     public shard: Shard;
 
     public kernel: Kernel;
+
+    public get createdAt(): Date {
+        return new Date((+this.identifier / 4194304) + 1420070400000);
+    }
+
 }

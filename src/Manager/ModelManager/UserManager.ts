@@ -1,6 +1,6 @@
-import UserPacket from "../Gateway/Packet/UserPacket";
-import ModelInterface from "../Model/ModelInterface";
-import User from "../Model/User";
+import UserPacket from "../../Gateway/Packet/UserPacket";
+import ModelInterface from "../../Model/ModelInterface";
+import User from "../../Model/User";
 import AbstractModelManager from "./AbstractModelManager";
 
 export default class UserManager extends AbstractModelManager<User> {

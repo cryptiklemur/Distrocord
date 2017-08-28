@@ -1,8 +1,8 @@
-import RolePacket from "../Gateway/Packet/RolePacket";
-import Guild from "../Model/Guild";
-import ModelInterface from "../Model/ModelInterface";
-import {PermissionModel} from "../Model/Permission";
-import Role from "../Model/Role";
+import RolePacket from "../../Gateway/Packet/RolePacket";
+import Guild from "../../Model/Guild";
+import ModelInterface from "../../Model/ModelInterface";
+import {PermissionModel} from "../../Model/Permission";
+import Role from "../../Model/Role";
 import AbstractModelManager from "./AbstractModelManager";
 
 export default class RoleManager extends AbstractModelManager<Role> {
