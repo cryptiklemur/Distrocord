@@ -1,5 +1,4 @@
 import Kernel from "../../Kernel";
-import DocumentInterface from "../../Model/DocumentInterface";
 import ModelInterface from "../../Model/ModelInterface";
 
 export default abstract class AbstractModelManager<T extends ModelInterface> {

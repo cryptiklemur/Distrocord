@@ -15,12 +15,11 @@ export default class Permission extends SchemaFragment implements ModelInterface
     public deny: number = 0;
 
     public kernel: Kernel;
+    private _json: any;
 
     public get createdAt(): Date {
         return new Date((+this.id / 4194304) + 1420070400000);
     }
-
-    private _json: any;
 
     public get json(): any {
         if (!this._json) {

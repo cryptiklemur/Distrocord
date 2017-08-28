@@ -67,6 +67,10 @@ export default class Kernel extends EventEmitter {
     private lastConnect: number     = 0;
     private mongoConnected: boolean = false;
 
+    get uptime(): number {
+        return this.startTime ? Date.now() - this.startTime : 0;
+    }
+
     constructor(options: Configuration) {
         super();
 
@@ -128,10 +132,6 @@ export default class Kernel extends EventEmitter {
             game:   null,
             status: "offline",
         };
-    }
-
-    get uptime(): number {
-        return this.startTime ? Date.now() - this.startTime : 0;
     }
 
     /**

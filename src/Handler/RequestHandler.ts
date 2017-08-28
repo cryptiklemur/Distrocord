@@ -8,7 +8,13 @@ import Kernel from "../Kernel";
 
 const version: any = require("../../package.json").version;
 
-interface LatencyRef { latency: number; raw: number[]; total: number; timeOffset: number; lastTimeOffsetCheck: number; }
+interface LatencyRef {
+    latency: number;
+    raw: number[];
+    total: number;
+    timeOffset: number;
+    lastTimeOffsetCheck: number;
+}
 
 /**
  * Handles API requests

@@ -2,6 +2,11 @@ import Kernel from "../../Kernel";
 import Shard from "../Shard";
 
 export default abstract class AbstractEvent {
+    private _op: number;
+    private _data: any;
+    private _sequence: number;
+    private _type: string;
+
     protected get op() {
         return this._op;
     }
@@ -17,11 +22,6 @@ export default abstract class AbstractEvent {
     protected get type() {
         return this._type;
     }
-
-    private _op: number;
-    private _data: any;
-    private _sequence: number;
-    private _type: string;
 
     constructor(protected kernel: Kernel, protected shard: Shard) {
     }

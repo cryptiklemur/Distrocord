@@ -13,7 +13,7 @@ export default class Bucket {
     private lastReset: number = 0;
     private tokens: number    = 0;
     private lastSend: number  = 0;
-    private _queue: any[] = [];
+    private _queue: any[]     = [];
     private timeout: Timer | null;
 
     /**
@@ -53,7 +53,7 @@ export default class Bucket {
         while (this._queue.length > 0 && this.tokens < this.tokenLimit) {
             this.tokens++;
             const item = this._queue.shift();
-            val      = this.latencyRef.latency - Date.now() + this.lastSend;
+            val        = this.latencyRef.latency - Date.now() + this.lastSend;
             if (this.latencyRef.latency === 0 || val <= 0) {
                 item();
                 this.lastSend = Date.now();
@@ -72,8 +72,8 @@ export default class Bucket {
                 this.tokens < this.tokenLimit
                     ? this.latencyRef.latency
                     : Math.max(
-                        0,
-                        this.lastReset + this.interval + this.tokenLimit * this.latencyRef.latency - Date.now(),
+                    0,
+                    this.lastReset + this.interval + this.tokenLimit * this.latencyRef.latency - Date.now(),
                     ),
             );
         }

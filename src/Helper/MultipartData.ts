@@ -1,6 +1,6 @@
 export default class MultipartData {
     private boundary: string = "----------------DistroDiscord";
-    private bufs: any[] = [];
+    private bufs: any[]      = [];
 
     public attach(fieldName, data, filename) {
         if (data === undefined) {

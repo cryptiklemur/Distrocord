@@ -51,7 +51,7 @@ export default class Collection<T> extends Map {
      * @arg {function} func A function that takes an object and returns true if it matches
      * @returns {Class?} The first matching object, or undefined if no match
      */
-    public find(func): T|undefined {
+    public find(func): T | undefined {
         for (const item of this.values()) {
             if (func(item)) {
                 return item;

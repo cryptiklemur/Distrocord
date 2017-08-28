@@ -46,16 +46,16 @@ export default class Shard extends EventEmitter {
     private _rPackets: number;
     private _rStartTime: number;
 
-    constructor(public id: number, private kernel: Kernel) {
-        super();
-
-        this.hardReset();
-    }
-
     public get latency(): number {
         return this.lastHeartbeatSent && this.lastHeartbeatReceived
             ? this.lastHeartbeatReceived - this.lastHeartbeatSent
             : Infinity;
+    }
+
+    constructor(public id: number, private kernel: Kernel) {
+        super();
+
+        this.hardReset();
     }
 
     /**
