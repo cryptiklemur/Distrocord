@@ -1,15 +1,16 @@
 import Kernel from "../../Kernel";
+import DocumentInterface from "../../Model/DocumentInterface";
 import ModelInterface from "../../Model/ModelInterface";
 
 export default abstract class AbstractModelManager<T extends ModelInterface> {
     constructor(protected kernel: Kernel) {
     }
 
-    public async doInitialize(model: T, data: any, parent?: ModelInterface): Promise<T> {
+    public async doInitialize(model: T, data: any, parent?: ModelInterface, update: boolean = true): Promise<T> {
         model.kernel = this.kernel;
         await this.initialize(model, data, parent);
 
-        return await this.doUpdate(model, data);
+        return update ? await this.doUpdate(model, data) : model;
     }
 
     public async doUpdate(model: T, data: any): Promise<T> {

@@ -4,6 +4,9 @@ import * as mongoose from "mongoose";
 import {Repository} from "mongot";
 import * as winston from "winston";
 import {LoggerInstance} from "winston";
+import GuildCollection from "./Collection/GuildCollection";
+import PrivateChannelCollection from "./Collection/PrivateChannelCollection";
+import UserCollection from "./Collection/UserCollection";
 import Configuration from "./Config/Configuration";
 import * as Constants from "./Config/Constants";
 import * as Endpoints from "./Config/Endpoints";
@@ -12,11 +15,12 @@ import ShardHandler from "./Handler/ShardHandler";
 import Collection from "./Helper/Collection";
 import Manager from "./Manager/Manager";
 import AbstractModelManager from "./Manager/ModelManager/AbstractModelManager";
-import ChannelManager from "./Manager/ModelManager/ChannelManager";
+import GuildChannelManager from "./Manager/ModelManager/GuildChannelManager";
 import GuildManager from "./Manager/ModelManager/GuildManager";
 import MemberManager from "./Manager/ModelManager/MemberManager";
 import PermissionManager from "./Manager/ModelManager/PermissionManager";
 import PermissionOverwriteManager from "./Manager/ModelManager/PermissionOverwriteManager";
+import PrivateChannelManager from "./Manager/ModelManager/PrivateChannelManager";
 import RoleManager from "./Manager/ModelManager/RoleManager";
 import UserManager from "./Manager/ModelManager/UserManager";
 import Channel from "./Model/Channel";
@@ -27,6 +31,16 @@ import User, {Status} from "./Model/User";
 // Set global promises
 (mongoose as any).Promise = global.Promise;
 // require('mongoose-long')(mongoose);
+
+declare global {
+    interface String {
+        equals(compare: string): boolean;
+    }
+}
+
+String.prototype.equals = function(this: string, compare: string): boolean {
+    return this === compare;
+};
 
 export default class Kernel extends EventEmitter {
     public static logger: LoggerInstance;
@@ -86,7 +100,8 @@ export default class Kernel extends EventEmitter {
         this.unavailableGuilds = new Collection<Guild>(Guild);
 
         this.modelManagers.member              = new MemberManager(this);
-        this.modelManagers.channel             = new ChannelManager(this);
+        this.modelManagers.privateChannel      = new PrivateChannelManager(this);
+        this.modelManagers.guildChannel        = new GuildChannelManager(this);
         this.modelManagers.guild               = new GuildManager(this);
         this.modelManagers.permission          = new PermissionManager(this);
         this.modelManagers.permissionOverwrite = new PermissionOverwriteManager(this);
@@ -95,18 +110,18 @@ export default class Kernel extends EventEmitter {
 
         this.guilds          = new Manager<Guild>(
             this,
-            new Repository(this.configuration.mongo.guildRepo),
+            new Repository(this.configuration.mongo.guildDatabase).get(GuildCollection),
             this.modelManagers.guild,
         );
         this.users           = new Manager<User>(
             this,
-            new Repository(this.configuration.mongo.userRepo),
-            this.modelManagers.user
+            new Repository(this.configuration.mongo.userDatabase).get(UserCollection),
+            this.modelManagers.user,
         );
         this.privateChannels = new Manager<Channel>(
             this,
-            new Repository(this.configuration.mongo.channelRepo),
-            this.modelManagers.chanel
+            new Repository(this.configuration.mongo.channelDatabase).get(PrivateChannelCollection),
+            this.modelManagers.chanel,
         );
 
         this.presence = {
@@ -146,7 +161,7 @@ export default class Kernel extends EventEmitter {
     public async connect() {
         Kernel.logger.debug("Connecting");
         return new Promise((resolve, reject) => {
-            Promise.all([this.connectToMongo(), this.getBotGateway()])
+            Promise.all([this.getBotGateway()])
                    .then((promises) => {
                        const data                   = promises[1];
                        this.configuration.maxShards = data.shards;
@@ -181,20 +196,6 @@ export default class Kernel extends EventEmitter {
 
                        setTimeout(() => this.connect().then(resolve).catch(reject), 2000);
                    });
-        });
-    }
-
-    private connectToMongo() {
-        return new Promise((resolve, reject) => {
-            if (this.mongoConnected) {
-                return resolve();
-            }
-
-            mongoose.connect(this.configuration.mongoConnectionUrl).then(() => {
-                this.mongoConnected = true;
-                this.emit("debug", "connected to mongo");
-                resolve();
-            }).catch(reject);
         });
     }
 }

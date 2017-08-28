@@ -16,7 +16,7 @@ export enum MessageType {
 }
 
 export default class Message {
-    public identifier: Long;
+    public id: Long;
 
     public channel: Channel;
 

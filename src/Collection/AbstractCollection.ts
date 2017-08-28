@@ -1,9 +1,10 @@
+import {Long} from "bson";
 import {Collection, index} from "mongot";
-import ModelInterface from "../Model/ModelInterface";
+import DocumentInterface from "../Model/DocumentInterface";
 
-@index('identifier', {unique: true})
-export default abstract class AbstractCollection<T extends ModelInterface> extends Collection<T> {
-    findByIdentifier(identifier: string) {
-        return this.findOne({identifier});
+@index("id", {unique: true})
+export default abstract class AbstractCollection<T extends DocumentInterface> extends Collection<T> {
+    public findById(id: string | Long) {
+        return this.findOne({id: id instanceof Long ? id.toString() : id});
     }
 }

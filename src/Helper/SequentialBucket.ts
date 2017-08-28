@@ -5,7 +5,7 @@ export default class SequentialBucket {
     private reset: number                   = 0;
     private processing?: any;
     private latencyRef: { latency: number } = {latency: 0};
-    private _queue: any[]              = [];
+    private _queue: any[]                   = [];
     private last: number;
 
     /**

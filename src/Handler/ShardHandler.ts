@@ -3,7 +3,7 @@ import Shard from "../Gateway/Shard";
 import Collection from "../Helper/Collection";
 
 export default class ShardHandler extends Collection<Shard> {
-    private connectQueue: any[]     = [];
+    private connectQueue: any[]          = [];
     private lastConnect: number          = 0;
     private connectTimeout: null | Timer = null;
 
@@ -49,7 +49,7 @@ export default class ShardHandler extends Collection<Shard> {
                 /**
                  * Fired when a shard turns ready
                  * @event kernel#shardReady
-                 * @prop {Number} identifier The ID of the shard
+                 * @prop {Number} id The ID of the shard
                  */
                 this.kernel.emit("shardReady", shard.id);
                 if (this.kernel.ready) {
@@ -71,7 +71,7 @@ export default class ShardHandler extends Collection<Shard> {
                 /**
                  * Fired when a shard resumes
                  * @event kernel#shardResume
-                 * @prop {Number} identifier The ID of the shard
+                 * @prop {Number} id The ID of the shard
                  */
                 this.kernel.emit("shardResume", shard.id);
                 if (this.kernel.ready) {
@@ -90,7 +90,7 @@ export default class ShardHandler extends Collection<Shard> {
                  * Fired when a shard disconnects
                  * @event kernel#shardDisconnect
                  * @prop {Error?} error The error, if any
-                 * @prop {Number} identifier The ID of the shard
+                 * @prop {Number} id The ID of the shard
                  */
                 this.kernel.emit("shardDisconnect", error, shard.id);
                 for (const other of this) {

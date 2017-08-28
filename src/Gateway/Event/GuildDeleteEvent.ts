@@ -23,7 +23,7 @@ export default class GuildDeleteEvent extends AbstractEvent {
         const guild = await this.kernel.guilds.remove(this.data.id);
         if (guild !== undefined) { // Discord sends GUILD_DELETE for guilds that were previously unavailable in READY
             await guild.channels.forEach(
-                (channel: Channel) => delete this.kernel.channelGuildMap[channel.identifier.toString()],
+                (channel: Channel) => delete this.kernel.channelGuildMap[channel.id.toString()],
                 true,
             );
         }

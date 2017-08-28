@@ -16,14 +16,14 @@ export default class ReadyEvent extends AbstractEvent {
         this.shard.connectAttempts   = 0;
         this.shard.reconnectInterval = 1000;
 
-        this.shard.connecting        = false;
-        this.shard.status            = "connected";
-        this.kernel.presence.status  = "online";
+        this.shard.connecting       = false;
+        this.shard.status           = "connected";
+        this.kernel.presence.status = "online";
         this.kernel.shardHandler.readyPacketCB();
 
         if (this.type === "RESUMED") {
             this.shard.preReady = true;
-            this.shard.ready = true;
+            this.shard.ready    = true;
 
             this.emit("resume");
 

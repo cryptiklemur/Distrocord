@@ -1,13 +1,13 @@
+import {fragment, prop, SchemaFragment} from "mongot";
 import Kernel from "../Kernel";
 import Guild from "./Guild";
 import ModelInterface from "./ModelInterface";
 import Permission from "./Permission";
-import {fragment, index, prop, SchemaFragment} from "mongot";
 
 @fragment
 export default class Role extends SchemaFragment implements ModelInterface {
     @prop
-    public identifier: string;
+    public id: string;
 
     @prop
     public name: string;
@@ -31,14 +31,13 @@ export default class Role extends SchemaFragment implements ModelInterface {
     public permissions: Permission;
 
     public guild: Guild;
+    public kernel: Kernel;
 
     public get mention() {
-        return "<@" + this.identifier + ">";
+        return "<@" + this.id + ">";
     }
 
     public get createdAt(): Date {
-        return new Date((+this.identifier / 4194304) + 1420070400000);
+        return new Date((+this.id / 4194304) + 1420070400000);
     }
-
-    public kernel: Kernel;
 }

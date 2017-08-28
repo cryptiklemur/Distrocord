@@ -5,7 +5,7 @@ import AbstractModelManager from "./AbstractModelManager";
 
 export default class PermissionOverwriteManager extends AbstractModelManager<PermissionOverwrite> {
     public async initialize(model: PermissionOverwrite, data: OverwritePacket, parent?: ModelInterface): Promise<void> {
-        this.updateField(model, "identifier", data, "id", (x) => x.toString())
+        this.updateField(model, "id", data, "id", (x) => x.toString())
             .updateField(model, "type", data);
     }
 }

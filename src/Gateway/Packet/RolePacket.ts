@@ -1,30 +1,30 @@
 import {Long} from "bson";
 
-type RolePacket = {
+interface RolePacket {
     /**
      * role id
      */
-    id: Long,
+    id: Long;
 
     /**
      * role Name
      */
-    name: string,
+    name: string;
 
     /**
      * integer representation of hexadecimal color code
      */
-    color: number,
+    color: number;
 
     /**
      * if this role is pinned in the user listing
      */
-    hoist: boolean,
+    hoist: boolean;
 
     /**
      * position of this role
      */
-    position: number,
+    position: number;
 
     /**
      * permission bit set
@@ -34,12 +34,12 @@ type RolePacket = {
     /**
      * whether this role is managed by an integration
      */
-    managed: boolean,
+    managed: boolean;
 
     /**
      * whether this role is mentionable
      */
-    mentionable: boolean
-};
+    mentionable: boolean;
+}
 
 export default RolePacket;

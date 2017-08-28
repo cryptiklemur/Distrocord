@@ -1,31 +1,31 @@
 import {Long} from "bson";
 
-type EmojiPacket = {
+interface EmojiPacket {
     /**
      * emoji id
      * @see https://discordapp.com/developers/docs/reference#image-formatting
      */
-    id: Long,
+    id: Long;
 
     /**
      * emoji name
      */
-    name: string,
+    name: string;
 
     /**
      * Role ids this emoji is active for
      */
-    roles: Long[],
+    roles: Long[];
 
     /**
      * whether this emoji must be wrapped in colons
      */
-    require_colons: boolean,
+    require_colons: boolean;
 
     /**
      * whether this emoji is managed
      */
-    managed: boolean
-};
+    managed: boolean;
+}
 
 export default EmojiPacket;

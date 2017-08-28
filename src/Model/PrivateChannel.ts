@@ -1,12 +1,11 @@
 import {document, prop} from "mongot";
 import Collection from "../Helper/Collection";
-import Kernel from "../Kernel";
 import Channel, {ChannelType} from "./Channel";
+import DocumentInterface from "./DocumentInterface";
 import Message from "./Message";
-import ModelInterface from "./ModelInterface";
 
 @document
-export default class PrivateChannel extends Channel implements ModelInterface {
+export default class PrivateChannel extends Channel implements DocumentInterface {
     @prop
     public user: string;
 

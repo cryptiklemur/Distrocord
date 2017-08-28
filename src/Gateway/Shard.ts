@@ -103,7 +103,7 @@ export default class Shard extends EventEmitter {
              * Fired when the shard encounters an error
              * @event Client#error
              * @prop {Error} err The error
-             * @prop {Number} identifier The ID of the shard
+             * @prop {Number} id The ID of the shard
              */
             this.kernel.emit("error", err, this.id);
         }
@@ -121,7 +121,7 @@ export default class Shard extends EventEmitter {
              * Fired when stuff happens and gives more info
              * @event Client#debug
              * @prop {String} message The debug message
-             * @prop {Number} identifier The ID of the shard
+             * @prop {Number} id The ID of the shard
              */
             this.kernel.emit(
                 "debug",
@@ -141,7 +141,7 @@ export default class Shard extends EventEmitter {
         this.kernel.guildShardMap[_guild.id] = this.id;
 
         try {
-            const guild = await this.kernel.guilds.add(_guild);
+            const guild = await this.kernel.guilds.upsert(_guild);
             if (this.kernel.configuration.getAllUsers && guild.members.length < guild.memberCount) {
                 // guild.fetchAllMembers();
                 // @todo Fetch all members
@@ -195,7 +195,7 @@ export default class Shard extends EventEmitter {
             /**
              * Fired when the shard establishes a connection
              * @event Client#connect
-             * @prop {Number} identifier The ID of the shard
+             * @prop {Number} id The ID of the shard
              */
             this.kernel.emit("connect", this.id);
             this.lastHeartbeatAck = true;
@@ -210,7 +210,7 @@ export default class Shard extends EventEmitter {
                      * Fired when the shard receives a websocket packet
                      * @event Client#rawWS
                      * @prop {Object} packet The packet
-                     * @prop {Number} identifier The ID of the shard
+                     * @prop {Number} id The ID of the shard
                      */
                     this.kernel.emit("rawWS", packet, this.id);
                 }
@@ -221,7 +221,7 @@ export default class Shard extends EventEmitter {
                          * Fired to warn of something weird but non-breaking happening
                          * @event Client#warn
                          * @prop {String} message The warning message
-                         * @prop {Number} identifier The ID of the shard
+                         * @prop {Number} id The ID of the shard
                          */
                         this.kernel.emit("warn", "Non-consecutive sequence, requesting resume", this.id);
                         this.seq = packet.s;

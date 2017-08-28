@@ -8,9 +8,14 @@ export const CHANNEL_BULK_DELETE               = (chanID) => `/channels/${chanID
 export const CHANNEL_CALL_RING                 = (chanID) => `/channels/${chanID}/call/ring`;
 export const CHANNEL_INVITES                   = (chanID) => `/channels/${chanID}/invites`;
 export const CHANNEL_MESSAGE_REACTION          =
-    (chanID, msgID, reaction) => `/channels/${chanID}/messages/${msgID}/reactions/${reaction}`;
+                 (chanID, msgID, reaction) => `/channels/${chanID}/messages/${msgID}/reactions/${reaction}`;
 export const CHANNEL_MESSAGE_REACTION_USER     =
-    (chanID, msgID, reaction, userID) => `/channels/${chanID}/messages/${msgID}/reactions/${reaction}/${userID}`;
+                 (
+                     chanID,
+                     msgID,
+                     reaction,
+                     userID,
+                 ) => `/channels/${chanID}/messages/${msgID}/reactions/${reaction}/${userID}`;
 export const CHANNEL_MESSAGE_REACTIONS         = (chanID, msgID) => `/channels/${chanID}/messages/${msgID}/reactions`;
 export const CHANNEL_MESSAGE                   = (chanID, msgID) => `/channels/${chanID}/messages/${msgID}`;
 export const CHANNEL_MESSAGES                  = (chanID) => `/channels/${chanID}/messages`;
@@ -35,13 +40,13 @@ export const GUILD_EMOJI                       = (guildID, emojiID) => `/guilds/
 export const GUILD_EMOJIS                      = (guildID) => `/guilds/${guildID}/emojis`;
 export const GUILD_INTEGRATION                 = (guildID, inteID) => `/guilds/${guildID}/integrations/${inteID}`;
 export const GUILD_INTEGRATION_SYNC            =
-    (guildID, inteID) => `/guilds/${guildID}/integrations/${inteID}/sync`;
+                 (guildID, inteID) => `/guilds/${guildID}/integrations/${inteID}/sync`;
 export const GUILD_INTEGRATIONS                = (guildID) => `/guilds/${guildID}/integrations`;
 export const GUILD_INVITES                     = (guildID) => `/guilds/${guildID}/invites`;
 export const GUILD_MEMBER                      = (guildID, memberID) => `/guilds/${guildID}/members/${memberID}`;
 export const GUILD_MEMBER_NICK                 = (guildID, memberID) => `/guilds/${guildID}/members/${memberID}/nick`;
 export const GUILD_MEMBER_ROLE                 =
-    (guildID, memberID, roleID) => `/guilds/${guildID}/members/${memberID}/roles/${roleID}`;
+                 (guildID, memberID, roleID) => `/guilds/${guildID}/members/${memberID}/roles/${roleID}`;
 export const GUILD_MEMBERS                     = (guildID) => `/guilds/${guildID}/members`;
 export const GUILD_MESSAGES_SEARCH             = (guildID) => `/guilds/${guildID}/messages/search`;
 export const GUILD_PRUNE                       = (guildID) => `/guilds/${guildID}/prune`;
@@ -59,7 +64,7 @@ export const USER_BILLING_PREMIUM_SUBSCRIPTION = (userID) => `/users/${userID}/b
 export const USER_CHANNELS                     = (userID) => `/users/${userID}/channels`;
 export const USER_CONNECTIONS                  = (userID) => `/users/${userID}/connections`;
 export const USER_CONNECTION_PLATFORM          =
-    (userID, platform, id) => `/users/${userID}/connections/${platform}/${id}`;
+                 (userID, platform, id) => `/users/${userID}/connections/${platform}/${id}`;
 export const USER_GUILD                        = (userID, guildID) => `/users/${userID}/guilds/${guildID}`;
 export const USER_GUILDS                       = (userID) => `/users/${userID}/guilds`;
 export const USER_MFA_CODES                    = (userID) => `/users/${userID}/mfa/codes`;

@@ -1,12 +1,12 @@
+import {fragment, prop, SchemaFragment} from "mongot";
 import {Permissions} from "../Config/Constants";
 import Kernel from "../Kernel";
 import ModelInterface from "./ModelInterface";
-import {fragment, prop, SchemaFragment} from "mongot";
 
 @fragment
 export default class Permission extends SchemaFragment implements ModelInterface {
     @prop
-    public identifier: string;
+    public id: string;
 
     @prop
     public allow: number;
@@ -17,8 +17,10 @@ export default class Permission extends SchemaFragment implements ModelInterface
     public kernel: Kernel;
 
     public get createdAt(): Date {
-        return new Date((+this.identifier / 4194304) + 1420070400000);
+        return new Date((+this.id / 4194304) + 1420070400000);
     }
+
+    private _json: any;
 
     public get json(): any {
         if (!this._json) {
@@ -35,8 +37,6 @@ export default class Permission extends SchemaFragment implements ModelInterface
         }
         return this._json;
     }
-
-    private _json: any;
 
     /**
      * Check if this permission allows a specific permission

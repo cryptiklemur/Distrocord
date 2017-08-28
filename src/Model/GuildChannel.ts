@@ -1,10 +1,9 @@
+import {fragment, prop, SchemaFragmentArray} from "mongot";
 import Collection from "../Helper/Collection";
-import Kernel from "../Kernel";
+import Channel, {ChannelType} from "./Channel";
 import Message from "./Message";
 import ModelInterface from "./ModelInterface";
 import PermissionOverwrite from "./PermissionOverwrite";
-import {prop, SchemaDocument, SchemaFragmentArray, document, fragment} from "mongot";
-import Channel, {ChannelType} from "./Channel";
 
 @fragment
 export default class GuildChannel extends Channel implements ModelInterface {
@@ -38,6 +37,6 @@ export default class GuildChannel extends Channel implements ModelInterface {
     public messages: Collection<Message>;
 
     public get mention() {
-        return "<#" + this.identifier + ">";
+        return "<#" + this.id + ">";
     }
 }

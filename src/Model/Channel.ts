@@ -1,9 +1,6 @@
-import Collection from "../Helper/Collection";
+import {prop, SchemaDocument} from "mongot";
 import Kernel from "../Kernel";
-import Message from "./Message";
 import ModelInterface from "./ModelInterface";
-import PermissionOverwrite from "./PermissionOverwrite";
-import {prop, SchemaDocument, SchemaFragmentArray, document} from "mongot";
 
 export enum ChannelType {
     GUILD_TEXT,
@@ -17,12 +14,12 @@ export default class Channel extends SchemaDocument implements ModelInterface {
     public kernel: Kernel;
 
     @prop
-    public identifier: string;
+    public id: string;
 
     @prop
     public type: ChannelType;
 
     public get createdAt(): Date {
-        return new Date((+this.identifier / 4194304) + 1420070400000);
+        return new Date((+this.id / 4194304) + 1420070400000);
     }
 }

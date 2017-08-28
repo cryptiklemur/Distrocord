@@ -1,4 +1,4 @@
-import {fragment, index, prop} from "mongot";
+import {fragment, prop} from "mongot";
 import Kernel from "../Kernel";
 import Guild from "./Guild";
 import ModelInterface from "./ModelInterface";
@@ -22,7 +22,7 @@ export default class Member extends User implements ModelInterface {
 
     public kernel: Kernel;
 
-    public get identifier(): string {
+    public get id(): string {
         return this.user;
     }
 }

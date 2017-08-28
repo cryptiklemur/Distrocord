@@ -1,97 +1,61 @@
 import {Long} from "bson";
-import {InstanceType, ModelType} from "typegoose";
+import AbstractCollection from "../Collection/AbstractCollection";
 import Kernel from "../Kernel";
-import ModelInterface from "../Model/ModelInterface";
+import DocumentInterface from "../Model/DocumentInterface";
 import AbstractModelManager from "./ModelManager/AbstractModelManager";
 
-export default class Manager<T extends ModelInterface> {
+export default class Manager<T extends DocumentInterface> {
     constructor(
         protected kernel: Kernel,
-        protected cls: ModelType<T>,
-        protected manager: AbstractModelManager<ModelInterface>,
+        protected collection: AbstractCollection<T>,
+        protected manager: AbstractModelManager<T>,
     ) {
     }
 
-    public async add(data: any): Promise<T> {
+    public async upsert(data: any): Promise<T> {
         try {
-            const cls: InstanceType<T> = await this.get(data.id) || new this.cls();
-            await this.manager.doInitialize(cls, data);
+            const result   = await this.collection.findOneAndUpdate({id: data.id}, data, {upsert: true});
+            const model: T = result.get();
+            await this.manager.doInitialize(model, data);
 
-            return await this.save(cls);
+            return result.get() as T;
         } catch (e) {
             this.kernel.emit("error", e);
         }
     }
 
-    public async get(identifier: Long): Promise<InstanceType<T>> {
+    public async get(id: Long | string): Promise<T> {
         try {
-            return await this.cls.findOne({identifier});
+            return await this.collection.findById(id instanceof Long ? id.toString() : id) as T;
         } catch (e) {
             this.kernel.emit("error", e);
         }
     }
 
-    public async all(): Promise<Array<InstanceType<T>>> {
+    public async all(): Promise<T[]> {
         try {
-            return await this.cls.find({}) as Array<InstanceType<T>>;
+            return await (await this.collection.find()).fetchAll() as T[];
         } catch (e) {
             this.kernel.emit("error", e);
         }
-    }
-
-    public async update(identifier: Long, data: any, persist: boolean = true): Promise<InstanceType<T>> {
-        try {
-            let cls: InstanceType<T> = await this.get(identifier);
-            if (!cls) {
-                cls = new this.cls();
-                await this.manager.doInitialize(cls, data);
-            } else {
-                await this.manager.doUpdate(cls, data);
-            }
-
-            if (!persist) {
-                return cls;
-            }
-
-            return await this.save(cls);
-        } catch (e) {
-            this.kernel.emit("error", e);
-        }
-    }
-
-    public async save(cls: InstanceType<T>): Promise<InstanceType<T>> {
-        try {
-            const e: any = await cls.validate();
-
-            Kernel.logger.debug("[Manager] Saving: ", JSON.stringify(cls));
-            await cls.save();
-        } catch (e) {
-            for (const field in e.errors) {
-                if (e.errors.hasOwnProperty(field)) {
-                    this.kernel.emit(
-                        "error",
-                        `In ${this.cls.modelName} on object ${cls.identifier} for ${field}: ` + e.errors[field].message,
-                    );
-                }
-            }
-        }
-
-        return cls;
     }
 
     public async count(query: any = {}): Promise<number> {
         try {
-            return await this.cls.count(query);
+            return await this.collection.count(query, {});
         } catch (e) {
             this.kernel.emit("error", e);
-            setTimeout(() => process.exit(1), 30);
         }
     }
 
-    public async remove(identifier: Long): Promise<InstanceType<T>> {
+    public async remove(id: Long | T): Promise<T> {
         try {
-            const instance: any = await this.get(identifier);
-            await instance.remove();
+            let instance;
+            if (id instanceof Long) {
+                instance = await this.collection.findById(id);
+            }
+
+            await this.collection.deleteOne(instance);
 
             return instance;
         } catch (e) {
@@ -100,7 +64,7 @@ export default class Manager<T extends ModelInterface> {
     }
 
     public async forEach(
-        callback: (value: InstanceType<T>, index: number, array: T[]) => void,
+        callback: (value: T, index: number, array: T[]) => void,
         parallel: boolean = false,
     ): Promise<void> {
         try {

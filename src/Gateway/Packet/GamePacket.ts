@@ -7,22 +7,22 @@ export enum GameType {
     /**
      * Streaming {name}
      */
-    STREAMING
+    STREAMING,
 }
 
-type GamePacket = {
+interface GamePacket {
     /**
      * the game's name
      */
-    name: string,
+    name: string;
 
     /**
      * Game type
      * @see https://discordapp.com/developers/docs/topics/gateway#game-object-game-types
      */
-    type: GameType,
+    type: GameType;
 
-    url?: string
+    url?: string;
 }
 
 export default GamePacket;

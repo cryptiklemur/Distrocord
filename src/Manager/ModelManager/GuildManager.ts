@@ -1,78 +1,34 @@
+import {SchemaFragmentArray} from "mongot";
 import GuildPacket from "../../Gateway/Packet/GuildPacket";
-import Channel, {ChannelModel} from "../../Model/Channel";
+import mergeById from "../../Helper/mergeById";
+import Kernel from "../../Kernel";
 import Guild from "../../Model/Guild";
-import Member, {MemberModel} from "../../Model/Member";
+import Member from "../../Model/Member";
 import ModelInterface from "../../Model/ModelInterface";
-import Role, {RoleModel} from "../../Model/Role";
 import AbstractModelManager from "./AbstractModelManager";
 
 export default class GuildManager extends AbstractModelManager<Guild> {
     public async initialize(model: Guild, data: GuildPacket, parent?: ModelInterface): Promise<void> {
-        model.shard = this.kernel.shardHandler.get(this.kernel.guildShardMap[model.identifier]);
+        model.shard = this.kernel.shardHandler.get(this.kernel.guildShardMap[model.id]);
 
-        this.updateField(model, "identifier", data, "id", (x) => x.toString())
+        this.updateField(model, "id", data, "id", (x) => x.toString())
             .updateField(model, "joinedAt", data, "joined_at")
             .updateField(model, "memberCount", data, "member_count");
 
-        for (const x of model.roles) {
-
-            const index = data.roles.findIndex((y) => y.id.toString() === x.identifier);
-            if (index === -1) {
-                this.kernel.emit("debug", `[Manager][Guild] Removing role: ${x.id}, no longer in guild.`);
-                data.roles.splice(index, 1);
-            }
-        }
-
-        for (const x of model.channels) {
-            const index = data.channels.findIndex((y) => y.id.toString() === x.identifier);
-            if (index === -1) {
-                this.kernel.emit("debug", `[Manager][Guild] Removing channel: ${x.id}, no longer in guild.`);
-                data.channels.splice(index, 1);
-            }
-        }
-        for (const x of model.members) {
-            const index = data.members.findIndex((y) => y.user.id.toString() === x.userId);
-            if (index === -1) {
-                this.kernel.emit("debug", `[Manager][Guild] Removing member: ${x.id}, no longer in guild.`);
-                data.members.splice(index, 1);
-            }
-        }
-
-        for (const d of data.roles) {
-            const x = model.roles.find((x) => x.identifier === d.id.toString()) || new RoleModel(d);
-            await this.kernel.modelManagers.role.doInitialize(x, d, model);
-
-            if (!x.id) {
-                await model.roles.push(x);
-            }
-        }
-
-        for (const d of data.channels || []) {
-            const x = model.channels.find((x) => x.identifier === d.id.toString()) || new ChannelModel(d);
-            await this.kernel.modelManagers.channel.doInitialize(x, d, model);
-
-            if (!x.id) {
-                await model.channels.push(x);
-            }
-        }
-
-        for (const d of data.members || []) {
-            const x = model.members.find((x) => x.userId === d.user.id.toString()) || new MemberModel(d);
-            await this.kernel.modelManagers.member.doInitialize(x, d, model);
-
-            if (!x.id) {
-                await model.members.push(x);
-            }
-        }
+        model.roles    = new SchemaFragmentArray(mergeById(model.roles, data.roles));
+        model.channels = new SchemaFragmentArray(mergeById(model.channels, data.channels));
+        model.members  = new SchemaFragmentArray(mergeById(model.members, data.members));
 
         for (const presence of data.presences || []) {
-            const x: Member = model.members.find((y) => y.userId === presence.user.id.toString());
+            const x: Member = model.members.find((y) => y.user === presence.user.id.toString());
             if (!x) {
                 continue;
             }
 
             await this.kernel.modelManagers.member.doUpdate(x, presence);
         }
+
+        Kernel.logger.debug("[Manager][Guild] Model: ", model);
     }
 
     public async update(model: Guild, data: GuildPacket): Promise<void> {

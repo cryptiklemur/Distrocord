@@ -1,26 +1,26 @@
 import {Long} from "bson";
 import {Type} from "../../Model/PermissionOverwrite";
 
-type OverwritePacket = {
+interface OverwritePacket {
     /**
      * the user or role id
      */
-    id: Long,
+    id: Long;
 
     /**
      * either "role" or "member"
      */
-    type: Type,
+    type: Type;
 
     /**
      * permission bit set of allowed permissions
      */
-    allow: number,
+    allow: number;
 
     /**
      * permission bit set of denied permissions
      */
-    deny: number
-};
+    deny: number;
+}
 
 export default OverwritePacket;

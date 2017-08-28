@@ -5,7 +5,7 @@ import AbstractModelManager from "./AbstractModelManager";
 
 export default class UserManager extends AbstractModelManager<User> {
     public async initialize(model: User, data: UserPacket, parent?: ModelInterface): Promise<void> {
-        this.updateField(model, "identifier", data, "id", (x) => x.toString())
+        this.updateField(model, "id", data, "id", (x) => x.toString())
             .updateField(model, "bot", data, null, (x) => !!x);
     }
 

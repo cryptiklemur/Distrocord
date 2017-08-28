@@ -18,10 +18,10 @@ export default class GuildUpdateEvent extends AbstractEvent {
             verificationLevel: guild.verificationLevel,
             splash:            guild.splash,
             region:            guild.region,
-            ownerID:           guild.ownerId,
+            owner:             guild.owner,
             icon:              guild.icon,
         };
 
-        this.emit("guildUpdate", this.kernel.guilds.update(this.data.id, this.data), oldGuild);
+        this.emit("guildUpdate", this.kernel.guilds.upsert(this.data), oldGuild);
     }
 }

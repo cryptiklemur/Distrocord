@@ -3,7 +3,7 @@ import Kernel from "../Kernel";
 interface ModelInterface {
     kernel: Kernel;
 
-    identifier: string;
+    id: string;
 
     readonly createdAt: Date;
 }
