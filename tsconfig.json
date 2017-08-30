@@ -1,6 +1,5 @@
 {
     "compilerOptions": {
-        "outDir":                 "./build/",
         "moduleResolution":       "Node",
         "lib":                    [
             "es6"

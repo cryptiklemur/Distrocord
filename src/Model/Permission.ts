@@ -1,3 +1,4 @@
+import {Long} from "bson";
 import {fragment, prop, SchemaFragment} from "mongot";
 import {Permissions} from "../Config/Constants";
 import Kernel from "../Kernel";
@@ -6,7 +7,7 @@ import ModelInterface from "./ModelInterface";
 @fragment
 export default class Permission extends SchemaFragment implements ModelInterface {
     @prop
-    public id: string;
+    public id: Long;
 
     @prop
     public allow: number;

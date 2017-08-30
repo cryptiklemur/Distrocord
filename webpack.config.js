@@ -6,35 +6,35 @@ const nodeModules = {'eris-crystal': true};
 fs.readdirSync('node_modules').filter(x => ['.bin'].indexOf(x) === -1).forEach(mod => nodeModules[mod] = 'commonjs ' + mod);
 
 module.exports = {
-    entry:     [
+    entry:        [
         './src/index.ts'
     ],
-    target:    'node',
-    output:    {
+    target:       'node',
+    output:       {
         path:     path.join(__dirname, 'build'),
         filename: 'index.js'
     },
-    resolve:   {
+    resolve:      {
         extensions: ['.ts', '.tsx', '.js', '.json']
     },
     watchOptions: {
         poll: true
     },
-    node:      {
+    node:         {
         fs:            'empty',
         child_process: 'empty',
         __dirname:     false,
         __filename:    false,
     },
-    externals: nodeModules,
-    module:    {
+    externals:    nodeModules,
+    module:       {
         rules: [
             {test: /\.tsx?$/, enforce: 'pre', use: ['tslint-loader?debug=true&configFile=tslint.json&fix=true']},
             {test: /\.js$/, enforce: 'pre', use: ['source-map-loader?debug=true']},
             {test: /\.tsx?$/, use: ['ts-loader?debug=true']}
         ]
     },
-    plugins:   [
+    plugins:      [
         new webpack.BannerPlugin({
             banner:    'require("source-map-support").install();',
             raw:       true,
@@ -42,5 +42,5 @@ module.exports = {
         }),
         new webpack.IgnorePlugin(/^\.$/),
     ],
-    devtool:   'source-map'
+    devtool:      'source-map'
 };

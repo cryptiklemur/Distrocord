@@ -9,7 +9,7 @@ import AbstractModelManager from "./AbstractModelManager";
 
 export default class PrivateChannelManager extends AbstractModelManager<PrivateChannel> {
     public async initialize(model: PrivateChannel, data: ChannelPacket, parent: User | ModelInterface): Promise<void> {
-        this.updateField(model, "id", data, "id", (x) => x.toString())
+        this.updateField(model, "id", data)
             .updateField(model, "type", data, null, (x) => x as ChannelType)
             .updateField(model, "user", parent, "id");
 

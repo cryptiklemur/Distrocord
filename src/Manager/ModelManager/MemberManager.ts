@@ -7,7 +7,7 @@ import AbstractModelManager from "./AbstractModelManager";
 export default class MemberManager extends AbstractModelManager<Member> {
     public async initialize(model: Member, data: MemberPacket, parent: Guild | ModelInterface): Promise<void> {
         model.guild = parent as Guild;
-        model.user  = data.user.id.toString();
+        model.user  = data.user.id;
     }
 
     public async update(model: Member, data: MemberPacket): Promise<void> {

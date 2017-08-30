@@ -8,11 +8,12 @@ services:
         build: .
         ports:
             - "3050:3000"
+            - "9229:9229"
         links:
             - mongo
         environment:
-            - PORT=3000
             - NODE_ENV=development
             - NODE_CMD=dev
         volumes:
             - ".:/app"
+            - "/app/node_modules"

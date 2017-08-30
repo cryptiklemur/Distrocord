@@ -30,7 +30,7 @@ export default class ReadyEvent extends AbstractEvent {
             return;
         }
 
-        this.kernel.user = await this.kernel.users.add(this.data.user);
+        this.kernel.user = await this.kernel.users.upsert(this.data.user);
         if (this.data._trace) {
             this.shard.discordServerTrace = this.data._trace;
         }
@@ -50,7 +50,7 @@ export default class ReadyEvent extends AbstractEvent {
         for (const channel of this.data.private_channels) {
             if (channel.type === undefined || channel.type === 1) {
                 this.kernel.privateChannelMap[channel.recipients[0].id.toString()] = channel.id;
-                await this.kernel.privateChannels.add(channel);
+                await this.kernel.privateChannels.upsert(channel);
             }
         }
 

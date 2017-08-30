@@ -1,3 +1,4 @@
+import {Long} from "bson";
 import {prop, SchemaDocument} from "mongot";
 import Kernel from "../Kernel";
 import ModelInterface from "./ModelInterface";
@@ -10,16 +11,13 @@ export enum ChannelType {
     GUILD_CATEGORY,
 }
 
-export default class Channel extends SchemaDocument implements ModelInterface {
+export default abstract class Channel extends SchemaDocument implements ModelInterface {
     public kernel: Kernel;
 
     @prop
-    public id: string;
-
-    @prop
-    public type: ChannelType;
+    public id: Long;
 
     public get createdAt(): Date {
-        return new Date((+this.id / 4194304) + 1420070400000);
+        return new Date(+this.id.div(Long.fromNumber(4194304)).add(Long.fromNumber(1420070400000)).toString());
     }
 }

@@ -4,6 +4,6 @@ import AbstractModelManager from "./AbstractModelManager";
 
 export default class PermissionManager extends AbstractModelManager<Permission> {
     public async initialize(model: Permission, data: any, parent?: ModelInterface): Promise<void> {
-        this.updateField(model, "id", data, "id", (x) => x.toString());
+        this.updateField(model, "id", data);
     }
 }

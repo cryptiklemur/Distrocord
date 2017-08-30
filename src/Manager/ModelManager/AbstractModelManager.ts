@@ -1,12 +1,16 @@
+import {SchemaFragment, SchemaFragmentArray} from "mongot";
 import Kernel from "../../Kernel";
 import ModelInterface from "../../Model/ModelInterface";
 
 export default abstract class AbstractModelManager<T extends ModelInterface> {
-    constructor(protected kernel: Kernel) {
+    constructor(protected kernel: Kernel, private cls: any) {
+    }
+
+    public create() {
+        return new (this.cls)();
     }
 
     public async doInitialize(model: T, data: any, parent?: ModelInterface, update: boolean = true): Promise<T> {
-        model.kernel = this.kernel;
         await this.initialize(model, data, parent);
 
         return update ? await this.doUpdate(model, data) : model;
@@ -42,10 +46,23 @@ export default abstract class AbstractModelManager<T extends ModelInterface> {
             value = cast(value);
         }
 
-        if (value !== undefined) {
+        if (value !== undefined && value !== null) {
             model[field] = value;
         }
 
         return this;
+    }
+
+    protected async getSubDocument<U extends SchemaFragment>(
+        model: T,
+        data: any[],
+        manager: AbstractModelManager<any | U>,
+    ): Promise<SchemaFragmentArray<U>> {
+        const models = [];
+        for (const item of data) {
+            models.push(await manager.doInitialize(manager.create(), item, model as any, true));
+        }
+
+        return new SchemaFragmentArray(models);
     }
 }

@@ -1,5 +1,6 @@
 import {Long} from "bson";
 import {EventEmitter} from "eventemitter3";
+import * as util from "util";
 import * as WebSocket from "uws";
 import {GATEWAY_VERSION, GatewayOPCodes as OPCodes} from "../Config/Constants";
 import Bucket from "../Helper/Bucket";
@@ -514,9 +515,16 @@ export default class Shard extends EventEmitter {
 
         return new Promise((resolve: any, reject) => {
             const clsName: string = this.getClassFromType(packet.t);
+            let instance: AbstractEvent;
             try {
-                const instance: AbstractEvent = new Events[clsName](this.kernel, this);
-                packet.d                      = this.castFields(packet.d);
+                instance = new Events[clsName](this.kernel, this);
+            } catch (e) {
+                this.kernel.emit("error", "No event for: " + clsName);
+                return;
+            }
+
+            try {
+                packet.d = this.castFields(packet.d);
 
                 instance.doHandle(packet).then(resolve).catch(reject);
             } catch (e) {
@@ -530,35 +538,50 @@ export default class Shard extends EventEmitter {
         return type.split("_").map((w) => w[0].toUpperCase() + w.substr(1).toLowerCase()).join("") + "Event";
     }
 
-    private castFields(data: any): any {
-        if (typeof data === "object") {
-            if (Array.isArray(data)) {
-                return data.forEach(this.castFields.bind(this));
-            }
+    private castFields(data: any, key?: string, depth = 0): any {
+        if (depth > 6) {
+            return data;
+        }
 
-            for (const field of
-                [
-                    "id",
-                    "owner_id",
-                    "guild_id",
-                    "afk_channel_id",
-                    "embed_channel_id",
-                    "last_message_id",
-                    "application",
-                    "widget_channel_id",
-                ]) {
-                if (data[field] !== undefined && typeof data[field] === "string") {
-                    data[field] = Long.fromString(data[field]);
+        if (Array.isArray(data)) {
+            for (const k in data) {
+                if (data.hasOwnProperty(k)) {
+                    data[k] = this.castFields(data[k], k, depth + 1);
                 }
             }
 
-            if (data.roles && Array.isArray(data.roles) && data.roles.filter((x) => typeof x !== "string") === 0) {
-                data.roles = data.roles.forEach((x) => Long.fromString(x));
+            return data;
+        }
+
+        if (data === null) {
+            return data;
+        }
+
+        if (typeof data === "object") {
+            for (const k of Object.keys(data)) {
+                data[k] = this.castFields(data[k], k, depth + 1);
             }
 
-            if (data.joined_at) {
-                data.joined_at = new Date(data.joined_at);
-            }
+            return data;
+        }
+
+        const longCast = [
+            "id",
+            "owner_id",
+            "guild_id",
+            "afk_channel_id",
+            "embed_channel_id",
+            "last_message_id",
+            "application",
+            "widget_channel_id",
+        ];
+        if (longCast.indexOf(key) >= 0) {
+            return Long.fromString(data);
+        }
+
+        const dateCast = ["joined_at"];
+        if (dateCast.indexOf(key) >= 0) {
+            return new Date(data);
         }
 
         return data;

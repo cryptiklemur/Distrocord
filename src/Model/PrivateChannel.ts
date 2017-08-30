@@ -1,3 +1,4 @@
+import {Long} from "bson";
 import {document, prop} from "mongot";
 import Collection from "../Helper/Collection";
 import Channel, {ChannelType} from "./Channel";
@@ -7,7 +8,7 @@ import Message from "./Message";
 @document
 export default class PrivateChannel extends Channel implements DocumentInterface {
     @prop
-    public user: string;
+    public user: Long;
 
     @prop
     public type: ChannelType = ChannelType.DM;

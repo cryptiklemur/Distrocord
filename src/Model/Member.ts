@@ -1,3 +1,4 @@
+import {Long} from "bson";
 import {fragment, prop} from "mongot";
 import Kernel from "../Kernel";
 import Guild from "./Guild";
@@ -7,7 +8,7 @@ import User from "./User";
 @fragment
 export default class Member extends User implements ModelInterface {
     @prop
-    public user: string;
+    public user: Long;
 
     @prop
     public nick?: string;
@@ -22,7 +23,7 @@ export default class Member extends User implements ModelInterface {
 
     public kernel: Kernel;
 
-    public get id(): string {
+    public get id(): Long {
         return this.user;
     }
 }

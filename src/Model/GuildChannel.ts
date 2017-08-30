@@ -1,3 +1,4 @@
+import {Long} from "bson";
 import {fragment, prop, SchemaFragmentArray} from "mongot";
 import Collection from "../Helper/Collection";
 import Channel, {ChannelType} from "./Channel";
@@ -8,7 +9,7 @@ import PermissionOverwrite from "./PermissionOverwrite";
 @fragment
 export default class GuildChannel extends Channel implements ModelInterface {
     @prop
-    public guild: string;
+    public guild: Long;
 
     @prop
     public type: ChannelType;

@@ -1,5 +1,6 @@
 import {Long} from "bson";
 import Channel from "./Channel";
+import GuildChannel from "./GuildChannel";
 import Member from "./Member";
 import Role from "./Role";
 import User from "./User";
@@ -44,5 +45,9 @@ export default class Message {
 
     public roleMentions: Role[];
 
-    public channelMentions: Channel[];
+    public channelMentions: GuildChannel[];
+
+    public get createdAt(): Date {
+        return new Date(+this.id.div(Long.fromNumber(4194304)).add(Long.fromNumber(1420070400000)).toString());
+    }
 }

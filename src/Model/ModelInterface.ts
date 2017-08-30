@@ -1,9 +1,10 @@
+import {Long} from "bson";
 import Kernel from "../Kernel";
 
 interface ModelInterface {
     kernel: Kernel;
 
-    id: string;
+    id: Long;
 
     readonly createdAt: Date;
 }

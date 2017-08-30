@@ -1,3 +1,4 @@
+import {Long} from "bson";
 import {fragment, prop, SchemaFragment} from "mongot";
 import Kernel from "../Kernel";
 import Guild from "./Guild";
@@ -7,7 +8,7 @@ import Permission from "./Permission";
 @fragment
 export default class Role extends SchemaFragment implements ModelInterface {
     @prop
-    public id: string;
+    public id: Long;
 
     @prop
     public name: string;
@@ -38,6 +39,6 @@ export default class Role extends SchemaFragment implements ModelInterface {
     }
 
     public get createdAt(): Date {
-        return new Date((+this.id / 4194304) + 1420070400000);
+        return new Date(+this.id.div(Long.fromNumber(4194304)).add(Long.fromNumber(1420070400000)).toString());
     }
 }

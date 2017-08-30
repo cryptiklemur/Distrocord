@@ -1,6 +1,5 @@
 import {Long} from "bson";
 import {EventEmitter} from "eventemitter3";
-import * as mongoose from "mongoose";
 import {Repository} from "mongot";
 import * as winston from "winston";
 import {LoggerInstance} from "winston";
@@ -25,12 +24,14 @@ import RoleManager from "./Manager/ModelManager/RoleManager";
 import UserManager from "./Manager/ModelManager/UserManager";
 import Channel from "./Model/Channel";
 import Guild from "./Model/Guild";
+import GuildChannel from "./Model/GuildChannel";
+import Member from "./Model/Member";
 import ModelInterface from "./Model/ModelInterface";
+import Permission from "./Model/Permission";
+import PermissionOverwrite from "./Model/PermissionOverwrite";
+import PrivateChannel from "./Model/PrivateChannel";
+import Role from "./Model/Role";
 import User, {Status} from "./Model/User";
-
-// Set global promises
-(mongoose as any).Promise = global.Promise;
-// require('mongoose-long')(mongoose);
 
 declare global {
     interface String {
@@ -103,29 +104,29 @@ export default class Kernel extends EventEmitter {
         this.shardHandler      = new ShardHandler(this);
         this.unavailableGuilds = new Collection<Guild>(Guild);
 
-        this.modelManagers.member              = new MemberManager(this);
-        this.modelManagers.privateChannel      = new PrivateChannelManager(this);
-        this.modelManagers.guildChannel        = new GuildChannelManager(this);
-        this.modelManagers.guild               = new GuildManager(this);
-        this.modelManagers.permission          = new PermissionManager(this);
-        this.modelManagers.permissionOverwrite = new PermissionOverwriteManager(this);
-        this.modelManagers.role                = new RoleManager(this);
-        this.modelManagers.user                = new UserManager(this);
+        this.modelManagers.member              = new MemberManager(this, Member);
+        this.modelManagers.privateChannel      = new PrivateChannelManager(this, PrivateChannel);
+        this.modelManagers.guildChannel        = new GuildChannelManager(this, GuildChannel);
+        this.modelManagers.guild               = new GuildManager(this, Guild);
+        this.modelManagers.permission          = new PermissionManager(this, Permission);
+        this.modelManagers.permissionOverwrite = new PermissionOverwriteManager(this, PermissionOverwrite);
+        this.modelManagers.role                = new RoleManager(this, Role);
+        this.modelManagers.user                = new UserManager(this, User);
 
         this.guilds          = new Manager<Guild>(
             this,
             new Repository(this.configuration.mongo.guildDatabase).get(GuildCollection),
-            this.modelManagers.guild,
+            this.modelManagers.guild as AbstractModelManager<Guild>,
         );
         this.users           = new Manager<User>(
             this,
             new Repository(this.configuration.mongo.userDatabase).get(UserCollection),
-            this.modelManagers.user,
+            this.modelManagers.user as AbstractModelManager<User>,
         );
         this.privateChannels = new Manager<Channel>(
             this,
             new Repository(this.configuration.mongo.channelDatabase).get(PrivateChannelCollection),
-            this.modelManagers.chanel,
+            this.modelManagers.privateChannel as AbstractModelManager<PrivateChannel>,
         );
 
         this.presence = {
@@ -161,41 +162,40 @@ export default class Kernel extends EventEmitter {
     public async connect() {
         Kernel.logger.debug("Connecting");
         return new Promise((resolve, reject) => {
-            Promise.all([this.getBotGateway()])
-                   .then((promises) => {
-                       const data                   = promises[1];
-                       this.configuration.maxShards = data.shards;
+            this.getBotGateway()
+                .then((data) => {
+                    this.configuration.maxShards = data.shards;
 
-                       if (this.configuration.lastShard === undefined) {
-                           this.configuration.lastShard = data.shards - 1;
-                       }
+                    if (this.configuration.lastShard === undefined) {
+                        this.configuration.lastShard = data.shards - 1;
+                    }
 
-                       if (!data.url) {
-                           return Promise.reject(new Error("Invalid response from gateway REST call"));
-                       }
-                       if (data.url.includes("?")) {
-                           data.url = data.url.substring(0, data.url.indexOf("?"));
-                       }
-                       if (!data.url.endsWith("/")) {
-                           data.url += "/";
-                       }
-                       this.gatewayURL = `${data.url}?v=${Constants.GATEWAY_VERSION}&encoding=etf`;
+                    if (!data.url) {
+                        return Promise.reject(new Error("Invalid response from gateway REST call"));
+                    }
+                    if (data.url.includes("?")) {
+                        data.url = data.url.substring(0, data.url.indexOf("?"));
+                    }
+                    if (!data.url.endsWith("/")) {
+                        data.url += "/";
+                    }
+                    this.gatewayURL = `${data.url}?v=${Constants.GATEWAY_VERSION}&encoding=etf`;
 
-                       for (let i = this.configuration.firstShard; i <= this.configuration.lastShard; i++) {
-                           this.shardHandler.spawn(i);
-                       }
+                    for (let i = this.configuration.firstShard; i <= this.configuration.lastShard; i++) {
+                        this.shardHandler.spawn(i);
+                    }
 
-                       resolve();
-                   })
-                   .catch((err) => {
-                       if (!this.configuration.autoReconnect) {
-                           return reject(err);
-                       }
+                    resolve();
+                })
+                .catch((err) => {
+                    if (!this.configuration.autoReconnect) {
+                        return reject(err);
+                    }
 
-                       this.emit("error", err);
+                    this.emit("error", err);
 
-                       setTimeout(() => this.connect().then(resolve).catch(reject), 2000);
-                   });
+                    setTimeout(() => this.connect().then(resolve).catch(reject), 2000);
+                });
         });
     }
 }

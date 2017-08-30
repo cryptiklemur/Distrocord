@@ -1,15 +1,16 @@
+import {Long} from "bson";
 import {document, prop, SchemaDocument, SchemaFragmentArray} from "mongot";
 import Shard from "../Gateway/Shard";
 import Kernel from "../Kernel";
-import GuildChannel from "./Channel";
 import DocumentInterface from "./DocumentInterface";
+import GuildChannel from "./GuildChannel";
 import Member from "./Member";
 import Role from "./Role";
 
 @document
 export default class Guild extends SchemaDocument implements DocumentInterface {
     @prop
-    public id: string;
+    public id: Long;
 
     /**
      * @type {string} The name of the server
@@ -21,7 +22,7 @@ export default class Guild extends SchemaDocument implements DocumentInterface {
      * @type {string} The user that is the guild owner
      */
     @prop
-    public owner: string;
+    public owner: Long;
 
     /**
      * @type {Date} Timestamp of when the bot account joined the guild
@@ -80,7 +81,6 @@ export default class Guild extends SchemaDocument implements DocumentInterface {
     public kernel: Kernel;
 
     public get createdAt(): Date {
-        return new Date((+this.id / 4194304) + 1420070400000);
+        return new Date(+this.id.div(Long.fromNumber(4194304)).add(Long.fromNumber(1420070400000)).toString());
     }
-
 }

@@ -1,3 +1,4 @@
+import {Long} from "bson";
 import {document, prop, SchemaDocument} from "mongot";
 import Kernel from "../Kernel";
 import DocumentInterface from "./DocumentInterface";
@@ -7,7 +8,7 @@ export type Status = "online" | "offline" | "idle" | "invisible";
 @document
 export default class User extends SchemaDocument implements DocumentInterface {
     @prop
-    public id: string;
+    public id: Long;
 
     /**
      * @type {string} The username of the user
@@ -48,7 +49,7 @@ export default class User extends SchemaDocument implements DocumentInterface {
     public kernel: Kernel;
 
     public get createdAt(): Date {
-        return new Date((+this.id / 4194304) + 1420070400000);
+        return new Date(+this.id.div(Long.fromNumber(4194304)).add(Long.fromNumber(1420070400000)).toString());
     }
 
     public get mention(): string {

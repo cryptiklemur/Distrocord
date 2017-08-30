@@ -8,7 +8,7 @@ import AbstractModelManager from "./AbstractModelManager";
 export default class RoleManager extends AbstractModelManager<Role> {
     public async initialize(model: Role, data: RolePacket, parent?: Guild | ModelInterface): Promise<void> {
         model.guild = parent as Guild;
-        this.updateField(model, "id", data, "id", (x) => x.toString());
+        this.updateField(model, "id", data);
     }
 
     public async update(model: Role, data: RolePacket): Promise<void> {
