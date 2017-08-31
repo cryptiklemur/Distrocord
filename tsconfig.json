@@ -1,6 +1,9 @@
 {
     "compilerOptions": {
+        "declaration":            true,
         "moduleResolution":       "Node",
+        "module":                 "commonjs",
+        "outDir":                 "./build",
         "lib":                    [
             "es6"
         ],
@@ -8,10 +11,9 @@
             "node",
             "reflect-metadata"
         ],
-        "module":                 "commonjs",
         "experimentalDecorators": true,
         "emitDecoratorMetadata":  true,
-        "pretty": true,
+        "pretty":                 true,
         "target":                 "ES6",
         "noImplicitAny":          false,
         "sourceMap":              true,

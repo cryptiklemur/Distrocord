@@ -8,9 +8,6 @@ import User from "./User";
 @fragment
 export default class Member extends User implements ModelInterface {
     @prop
-    public user: Long;
-
-    @prop
     public nick?: string;
 
     @prop
@@ -20,10 +17,4 @@ export default class Member extends User implements ModelInterface {
     public roles: string[];
 
     public guild: Guild;
-
-    public kernel: Kernel;
-
-    public get id(): Long {
-        return this.user;
-    }
 }

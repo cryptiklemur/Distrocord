@@ -3,7 +3,7 @@ import {document, prop, SchemaDocument} from "mongot";
 import Kernel from "../Kernel";
 import DocumentInterface from "./DocumentInterface";
 
-export type Status = "online" | "offline" | "idle" | "invisible";
+export type UserStatus = "online" | "offline" | "idle" | "invisible";
 
 @document
 export default class User extends SchemaDocument implements DocumentInterface {
@@ -26,7 +26,7 @@ export default class User extends SchemaDocument implements DocumentInterface {
      * @type {Status} Online status of the user
      */
     @prop
-    public status?: Status;
+    public status?: UserStatus;
 
     /**
      * @type {string|null} Game the user is playing

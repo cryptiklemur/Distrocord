@@ -27,7 +27,7 @@ export default class GuildManager extends AbstractModelManager<Guild> {
         model.members = await this.getSubDocument<Member>(model, data.members, this.kernel.modelManagers.member);
 
         for (const presence of data.presences || []) {
-            const x: Member = model.members.find((y) => y.user === presence.user.id);
+            const x: Member = model.members.find((y) => y.id === presence.user.id);
             if (!x) {
                 continue;
             }

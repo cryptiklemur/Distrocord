@@ -1,0 +1,1 @@
+{"version":3,"file":"PermissionManager.js","sourceRoot":"","sources":["../../../src/Manager/ModelManager/PermissionManager.ts"],"names":[],"mappings":";;;;;;;;;;AAEA,iEAA0D;AAE1D,uBAAuC,SAAQ,8BAAgC;IAC9D,UAAU,CAAC,KAAiB,EAAE,IAAS,EAAE,MAAuB;;YACzE,IAAI,CAAC,WAAW,CAAC,KAAK,EAAE,IAAI,EAAE,IAAI,CAAC,CAAC;QACxC,CAAC;KAAA;CACJ;AAJD,oCAIC"}

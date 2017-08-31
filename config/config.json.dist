@@ -1,0 +1,20 @@
+{
+    "token":              "discord-bot-token",
+    "mongo":              {
+        "guildDatabase":   "mongodb://mongo/guild",
+        "channelDatabase": "mongodb://mongo/channel",
+        "userDatabase":    "mongodb://mongo/user"
+    },
+    "logLevel":           "info",
+    "autoReconnect":      true,
+    "connectionTimeout":  30000,
+    "disableEvents":      [],
+    "firstShard":         0,
+    "lastShard?": 0,
+    "maxShards?": 1,
+    "defaultImageFormat": "jpg",
+    "defaultImageSize":   128,
+    "messageLimit":       1024,
+    "getAllUsers":        false,
+    "guildCreateTimeout": 20000
+}

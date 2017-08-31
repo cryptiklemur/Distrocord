@@ -1,3 +1,5 @@
+require("source-map-support").install();
+
 import {Long} from "bson";
 import {EventEmitter} from "eventemitter3";
 import {Repository} from "mongot";
@@ -31,7 +33,7 @@ import Permission from "./Model/Permission";
 import PermissionOverwrite from "./Model/PermissionOverwrite";
 import PrivateChannel from "./Model/PrivateChannel";
 import Role from "./Model/Role";
-import User, {Status} from "./Model/User";
+import User, {UserStatus} from "./Model/User";
 
 declare global {
     interface String {
@@ -51,7 +53,7 @@ export default class Kernel extends EventEmitter {
     public gatewayURL: string;
     public requestHandler: RequestHandler;
     public shardHandler: ShardHandler;
-    public presence: { game: any; status: Status };
+    public presence: { game: any; status: UserStatus };
     public guildShardMap: { [id: string]: number }                                 = {};
     public channelGuildMap: { [id: string]: Long }                                 = {};
     public privateChannelMap: { [id: string]: Long }                               = {};

@@ -9,6 +9,7 @@
             "allow-leading-underscore",
             "allow-pascal-case"
         ],
+        "no-console":               false,
         "no-bitwise":               false,
         "no-empty":                 false,
         "no-eval":                  false,

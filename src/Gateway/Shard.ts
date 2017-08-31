@@ -1,13 +1,13 @@
 import {Long} from "bson";
 import {EventEmitter} from "eventemitter3";
-import * as util from "util";
 import * as WebSocket from "uws";
 import {GATEWAY_VERSION, GatewayOPCodes as OPCodes} from "../Config/Constants";
 import Bucket from "../Helper/Bucket";
 import Kernel from "../Kernel";
 import Guild from "../Model/Guild";
-import {Status} from "../Model/User";
-import Events from "./Event";
+import {UserStatus} from "../Model/User";
+import * as Events from "./Event";
+
 import AbstractEvent from "./Event/AbstractEvent";
 
 let Erlpack: any;
@@ -43,7 +43,7 @@ export default class Shard extends EventEmitter {
     private idleSince?: number;
     private globalBucket: Bucket;
     private presenceUpdateBucket: Bucket;
-    private presence: { game: string | null, status: Status };
+    private presence: { game: string | null, status: UserStatus };
     private _rPackets: number;
     private _rStartTime: number;
 
