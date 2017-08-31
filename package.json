@@ -2,6 +2,9 @@
     "name": "Distrocord",
     "description": "Distributed Discord Library",
     "license": "MIT",
+    "bin": {
+        "distrocord-config": "./bin/distrocord-config.js"
+    },
     "scripts": {
         "barrel": "find ./src -name 'index.ts' -delete && node ./node_modules/.bin/barrelsby -d src/ -l all -s filesystem",
         "lint": "tslint -c tslint.json 'src/**/*.ts' --fix",
