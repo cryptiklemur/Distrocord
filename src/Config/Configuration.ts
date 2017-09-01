@@ -1,21 +1,8 @@
 import {IsArray, IsBoolean, IsNumber, IsString, ValidateNested} from "class-validator";
+import {MongoConfiguration} from "../../build/Config/Configuration";
 
 export type LogLevel = "error" | "warn" | "info" | "verbose" | "debug" | "silly";
 
-export class MongoConfiguration {
-    @IsString()
-    public guildDatabase: string;
-    @IsString()
-    public userDatabase: string;
-    @IsString()
-    public channelDatabase: string;
-
-    constructor(options?: MongoConfiguration) {
-        Object.assign(this, options);
-    }
-}
-
-//noinspection TsLint
 export default class Configuration {
     @IsString()
     public token: string;

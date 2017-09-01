@@ -1,9 +1,0 @@
-{
-    "token":    "MTcwMTA5MzIxOTQ0NzYwMzIw.DIQRKw.O-_TANRkOAl-GX5oFZdlx-AZcCA",
-    "mongo":    {
-        "guildDatabase":   "mongodb://mongo/guild",
-        "channelDatabase": "mongodb://mongo/channel",
-        "userDatabase":    "mongodb://mongo/user"
-    },
-    "logLevel": "silly"
-}
